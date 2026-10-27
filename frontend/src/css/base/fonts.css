@@ -1,0 +1,8 @@
+/* Inter (UI/body) and Fraunces (headlines), both variable and self-hosted from npm.
+   Split by unicode-range, so browsers only download the subsets a page uses.
+   Fraunces uses the optical-size build (opsz + wght, roman and italic) so large
+   display headings get the tighter display cut. Family names are "Inter Variable"
+   and "Fraunces Variable" — see the font-family variables in theme.css. */
+@import '@fontsource-variable/inter/index.css';
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/fraunces/opsz-italic.css';

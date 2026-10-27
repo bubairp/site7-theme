@@ -1,0 +1,301 @@
+@layer components {
+  /* ==========================================================================
+   HEADER CHROME & SHELL STYLES
+   Covers: headerMain positioning/states, hamburger icon animation,
+           mobile nav slide-in panel, mobile nav backdrop, keyboard focus ring.
+   Navigation/menu dropdown styles live in _header-menu.scss
+   ========================================================================== */
+
+
+  /* ==========================================================================
+   1. CORE HEADER & BACKGROUND STATES
+   ========================================================================== */
+
+  /* Ensure inner header-main is transparent for headerMain backdrop */
+  .headerMain {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: var(--z-header, 50);
+    transform: translateY(0) !important;
+    background-color: var(--body-bg, #fef9ef) !important;
+
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-bottom: none;
+  }
+
+  /* Hide header border when dropdown is open to prevent flash */
+  .headerMain.menu-dropdown-open {
+    border-bottom: none !important;
+  }
+
+  /* Hide on scroll down, show on scroll up (handled via JS scrollspy/sticky) */
+  .headerMain.hidden-nav {
+    transform: translateY(-100%) !important;
+  }
+
+  /* Opaque / scrolled state */
+  .headerMain.scrolled,
+  .headerMain.opaque,
+  .headerMain.menu-open {
+    background-color: var(--body-bg, #fef9ef) !important;
+    box-shadow: var(--shadow-header) !important;
+  }
+
+  /* Header Shadow on Scroll (Legacy class support) */
+  .headerMain.fixed {
+    position: fixed !important;
+  }
+
+  /* Search row: the form's utilities give 16px above the field and 4px below; even it out */
+  .headerMain .search-field form {
+    padding-bottom: 16px !important;
+  }
+
+  /* Header CTA (Header > Button): one compact size for the bar, 44px tall with 15px text.
+     The Floating glass state makes it 48px (below). */
+  .headerMain .header-cta {
+    height: 44px;
+    padding-block: 0;
+    padding-inline: 22px;
+    font-size: 15px;
+  }
+
+  /* ── Floating glass header (Header > Style > "Header over banner") ─────
+     Look and behaviour after functionhealth.com. The sticky behaviour applies on every
+     page (pinned, never hides, announcement bar slides away); the glass look only where
+     the page opens with a hero or page banner. The state classes:
+       #header.has-header-banner   page opens with a banner   (_layouts/entry.twig)
+       #header.has-banner-photo    ...and it is a photo        (_layouts/entry.twig)
+       .headerMain.header-floating-glass   option is on        (_includes/header/index.twig)
+       .thinbar-away / .scrolled           scroll states       (js/app.js initGlassHeader)
+     The glass box is .header-panel, which wraps the bar row and the search field in every
+     header layout, so search opens inside the same box. It is unstyled for "Solid bar". */
+
+  /* Every page: the header is pinned and never hides */
+  .headerMain.header-floating-glass {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    transition:
+      transform 0.35s var(--ease-out-soft),
+      background-color 0.3s var(--ease-out-soft),
+      box-shadow 0.3s var(--ease-out-soft) !important;
+  }
+
+  /* Every page: once it scrolls the announcement bar slides away */
+  .headerMain.header-floating-glass.thinbar-away {
+    transform: translateY(calc(-1 * var(--header-top-height, 0px))) !important;
+  }
+
+  /* Banner pages: the banner starts under the header */
+  #header.has-header-banner:has(.header-floating-glass) > .header-height {
+    display: none;
+  }
+
+  /* Glass state: the bar itself is transparent, the panel is the glass */
+  #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) {
+    --glass-gutter: 12px;
+    --glass-radius: 12px;
+    --glass-tint: rgba(42, 43, 47, 0.08);
+    --glass-blur: blur(20px) saturate(1.4);
+    --glass-pad-y: 10px;
+    --glass-pad-x: 16px;
+    background: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  #header.has-header-banner:not(.has-banner-photo) .headerMain.header-floating-glass:not(.scrolled, .menu-open) {
+    --glass-tint: color-mix(in srgb, var(--parchment) 72%, transparent);
+  }
+
+  /* The bar row's wrapper: clearance around the panel; no band colour of its own
+     (the centred-logo layout gives it bg-light) */
+  #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-main {
+    padding-block: var(--glass-gutter) !important;
+    background: transparent !important;
+  }
+
+  /* .header-panel carries the header's container classes (Container Width), so its max
+     width follows that setting; here it is also kept clear of the screen edges and gets
+     the glass padding in place of the container gutters (!important beats the utilities) */
+  #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-panel {
+    position: relative;
+    isolation: isolate;
+    width: calc(100% - 2 * var(--glass-gutter)) !important;
+    margin-inline: auto !important;
+    padding: var(--glass-pad-y) var(--glass-pad-x) !important;
+  }
+
+  /* The glass is painted by a pseudo-element, not the panel itself: an element with a
+     backdrop-filter becomes the "backdrop root" of everything inside it, which would stop
+     the dropdowns' own blur from reaching the page behind them. */
+  #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: var(--glass-radius);
+    background-color: var(--glass-tint);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    pointer-events: none;
+  }
+
+  /* Search opens inside the panel, centred under the bar row */
+  #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-panel .search-field form {
+    padding-block: var(--glass-pad-y) 2px !important;
+  }
+
+  @media (min-width: 1024px) {
+    #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) {
+      --glass-gutter: 16px;
+      --glass-pad-y: 12px;
+      --glass-pad-x: 32px;
+    }
+
+    #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-panel {
+      width: calc(100% - 64px) !important;
+    }
+
+    #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) :is(.header-logo-svg, .logo img) {
+      height: 40px !important;
+    }
+
+    #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-cta {
+      height: 48px;
+      padding-inline: 24px;
+    }
+
+    /* Dropdowns and mega menus open 8px below the panel instead of under it. A menu item
+       ends 19px above the panel's bottom (12px padding + centring), so the gap and its
+       hover bridge are 19 + 8 = 27px. A mega panel is positioned against .header-panel
+       (position: relative), so it starts 8px below it. */
+    #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .simple-rp-menu {
+      --menu-dropdown-gap: 27px;
+    }
+
+    #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .simple-rp-menu > .menu-ul > li.has-mega-menu > .dropdown-menu {
+      top: calc(100% + 8px) !important;
+    }
+
+    #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .simple-rp-menu > .menu-ul > li.has-mega-menu > .dropdown-menu::before {
+      height: 27px !important;
+    }
+  }
+
+  /* While the header is glass, the page behind an open dropdown is only dimmed, not
+     blurred: glass over an already blurred page has nothing to show through */
+  #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) ~ .dropdown-overlay {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: rgba(42, 43, 47, 0.12);
+  }
+
+  /* Dropdowns and mega menus use the pill's glass: same tint, blur and radius, no border */
+  #header.has-header-banner .headerMain.header-floating-glass:not(.scrolled, .menu-open) .simple-rp-menu .dropdown-menu {
+    --menu-dropdown-bg: var(--glass-tint);
+    --menu-dropdown-border: transparent;
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: none !important;
+  }
+
+  /* Over a photo: Parchment logo, links and icons; Parchment CTA with terracotta text */
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) {
+    --menu-text: color-mix(in srgb, var(--parchment) 92%, transparent);
+    --menu-hover-color: #ffffff;
+    --menu-active-color: #ffffff;
+  }
+
+  /* Dropdown items match the pill: Parchment text, a soft white highlight on hover, the
+     current page white (terracotta has too little contrast on the photo) */
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) .dropdown-menu {
+    --menu-sub-hover-color: #ffffff;
+    --menu-sub-hover-bg: color-mix(in srgb, #ffffff 14%, transparent);
+  }
+
+  /* An inline SVG logo (_includes/header/_parts/logo) is recoloured: filled shapes and
+     text Parchment, strokes (the "F") terracotta. A non-SVG logo can only go white. */
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-logo-svg :is([fill]:not([fill="none"]), text) {
+    fill: var(--parchment);
+  }
+
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-logo-svg [stroke]:not([stroke="none"]) {
+    stroke: var(--accent);
+  }
+
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) :is(.logo img, .menu-brand img) {
+    filter: brightness(0) invert(1);
+  }
+
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) :is(.logo, #sidebarMenuToggle, [aria-label="Search"]) {
+    color: var(--parchment) !important;
+  }
+
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) .hamburger-icon .bar {
+    background-color: var(--parchment) !important;
+  }
+
+  #header.has-banner-photo .headerMain.header-floating-glass:not(.scrolled, .menu-open) .header-main .tw-btn-primary {
+    background-color: var(--parchment) !important;
+    border-color: var(--parchment) !important;
+    color: var(--accent) !important;
+  }
+
+  /* The banner runs under the header: add the header height to its own top padding and
+     min-height, so its copy stays where it was */
+  /* Home hero: one full screen, like functionhealth.com (the banner starts under the header) */
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .hero-editorial-slide {
+    min-height: 100svh;
+  }
+
+  /* The copy is bottom-aligned, so the top padding only keeps it clear of the header */
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .hero-editorial-inner {
+    padding-top: calc(48px + var(--header-height, 100px));
+  }
+
+  /* Hero layouts 1 (split) and 2 (half and half): one full screen too, the copy kept clear
+     of the header. Layout 2's media starts at the top of the screen, behind the header. */
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .hero-split-grid {
+    min-height: 100svh;
+  }
+
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .hero-half-inner {
+    min-height: 100svh;
+  }
+
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .hero-split-grid {
+    padding-top: calc(32px + var(--header-height, 100px));
+  }
+
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .hero-half-copy {
+    padding-top: calc(40px + var(--header-height, 100px));
+  }
+
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .page-hero-grid {
+    padding-top: calc(40px + var(--header-height, 100px));
+  }
+
+  /* Photo page banner: about 72% of the screen including the header, 560-760px */
+  #header.has-header-banner:has(.header-floating-glass) > .header-banner .page-hero-slide.is-cover .page-hero-grid {
+    min-height: clamp(560px, 72svh, 760px);
+    padding-top: calc(40px + var(--header-height, 100px));
+  }
+
+  @media (min-width: 1024px) {
+    #header.has-header-banner:has(.header-floating-glass) > .header-banner .page-hero-grid {
+      padding-top: calc(64px + var(--header-height, 100px));
+    }
+
+    #header.has-header-banner:has(.header-floating-glass) > .header-banner .page-hero-slide.is-cover .page-hero-grid {
+      padding-top: calc(64px + var(--header-height, 100px));
+    }
+  }
+}

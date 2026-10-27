@@ -1,0 +1,106 @@
+@layer base {
+
+  /* Body: Inter with slight negative tracking (DESIGN.md §3) */
+  body {
+    font-family: var(--body-font-family);
+    letter-spacing: var(--body-tracking);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Headings: Ink, white inside dark sections */
+  h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+    @apply text-ink dark:text-parchment;
+    text-wrap: balance;
+  }
+
+  /* h1–h4 and block titles are the serif voice: Fraunces 400, normal tracking */
+  h1, .h1, h2, .h2, h3, .h3, h4, .h4, .block-heading-title {
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-weight);
+    letter-spacing: var(--heading-tracking);
+    font-optical-sizing: auto;
+  }
+
+  /* h5/h6 are UI-level labels: Inter 600 */
+  h5, .h5, h6, .h6 {
+    font-family: var(--body-font-family);
+    font-weight: 600;
+    letter-spacing: var(--body-tracking);
+  }
+
+  /* Signature move: an <em> inside a headline turns light italic (one word or phrase) */
+  :is(h1, .h1, h2, .h2, h3, .h3, .block-heading-title) :is(em, i) {
+    font-style: var(--heading-em-style);
+    font-weight: var(--heading-em-weight);
+  }
+
+  /* Scale (DESIGN.md §3), stepping down on smaller screens */
+  h1,
+  .h1 {
+    @apply text-[2.5rem] md:text-[3.25rem] lg:text-[4rem] leading-[1.04] mb-5;
+  }
+
+  h2,
+  .h2 {
+    @apply text-[2rem] md:text-[2.5rem] lg:text-[2.8125rem] leading-[1.1] mb-4;
+  }
+
+  h3,
+  .h3 {
+    @apply text-[1.625rem] md:text-[1.875rem] lg:text-[2.125rem] leading-[1.15] mb-3;
+  }
+
+  h4,
+  .h4 {
+    @apply text-[1.375rem] lg:text-2xl leading-[1.25] mb-3;
+  }
+
+  h5,
+  .h5 {
+    @apply text-lg lg:text-xl leading-[1.3] mb-2;
+  }
+
+  h6,
+  .h6 {
+    @apply text-base lg:text-lg leading-[1.4] mb-2;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--ink);
+  }
+}
+
+@layer components {
+
+  /* Semantic text styles */
+  .tw-text-muted {
+    @apply text-graphite dark:text-parchment/70;
+  }
+
+  .tw-text-lead {
+    @apply text-lg md:text-xl leading-[1.5] text-charcoal dark:text-parchment/85;
+    font-weight: var(--lead-weight);
+  }
+
+  .tw-text-caption {
+    @apply text-sm text-graphite dark:text-parchment/70;
+  }
+
+  /* Eyebrow: Inter 600, 12px, uppercase, terracotta (DESIGN.md §5) */
+  .tw-eyebrow {
+    @apply inline-block font-sans text-xs font-semibold uppercase tracking-[0.08em] leading-[1.4] text-accent mb-3;
+  }
+
+  .tw-heading-section {
+    @apply text-[2rem] md:text-[2.5rem] lg:text-[2.8125rem] leading-[1.1] text-ink dark:text-parchment mb-4;
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-weight);
+  }
+}

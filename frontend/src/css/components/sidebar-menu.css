@@ -1,0 +1,588 @@
+@layer components {
+  /* ==========================================================================
+   SIDEBAR MENU — Independent from headerMain
+   Uses explicit colors & CSS custom properties from theme.css
+   ========================================================================== */
+
+  /* ---------- Overlay ---------- */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.3s ease,
+      visibility 0.3s ease;
+  }
+
+  .sidebar-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ---------- Panel ---------- */
+  .sidebar-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1050;
+    height: 100dvh;
+    width: 320px;
+    max-width: 85vw;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--dark, #1e2939);
+    color: #fff;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sidebar-panel.is-open {
+    transform: translateX(0);
+  }
+
+  /* ---------- Header ---------- */
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+  }
+
+  .sidebar-header img {
+    height: 2rem;
+    width: auto;
+  }
+
+  /* ---------- Close button ---------- */
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+  }
+
+  .sidebar-close:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* ---------- Body (scrollable area) ---------- */
+  .sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+  }
+
+  /* ---------- Menu inside sidebar ---------- */
+  .sidebar-menu .menu-ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+  }
+
+  .sidebar-menu .menu-ul > li {
+    position: relative !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  .sidebar-menu .menu-ul > li:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+
+  .sidebar-menu :is(a, span).nav-link:not(.dropdown-toggle) {
+    display: flex !important;
+    width: 100% !important;
+    align-items: center !important;
+    padding: 0.75rem 1rem !important;
+    color: #d1d5db !important;
+    text-decoration: none !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s !important;
+    background-color: transparent !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .sidebar-menu :is(a, span).nav-link:not(.dropdown-toggle):hover {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  /* ---------- Dropdown (accordion) ---------- */
+  .sidebar-menu .dropdown {
+    position: relative !important;
+  }
+
+  .sidebar-menu .dropdown-toggle {
+    position: absolute !important;
+    right: 0.25rem !important;
+    top: 0.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    background-color: transparent !important;
+    border: none !important;
+    color: #6b7280 !important;
+    transition: color 0.3s, background-color 0.3s !important;
+    border-radius: 0.5rem !important;
+    box-shadow: none !important;
+  }
+
+  .sidebar-menu .dropdown-toggle:hover {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .sidebar-menu .is-open > .dropdown-toggle {
+    color: #fff !important;
+  }
+
+  .sidebar-menu .ddarow {
+    width: 0.5rem !important;
+    height: 0.5rem !important;
+    border-right: 2px solid currentColor !important;
+    border-bottom: 2px solid currentColor !important;
+    transform: translateY(-2px) rotate(45deg) !important;
+    transition: transform 0.3s ease-in-out !important;
+  }
+
+  .sidebar-menu .is-open > .dropdown-toggle .ddarow,
+  .sidebar-menu .is-open > .menu-group > .dropdown-toggle .ddarow {
+    transform: translateY(2px) rotate(-135deg) !important;
+  }
+
+  /* Sub-menu: accordion hidden → open */
+  .sidebar-menu li.dropdown > .dropdown-menu,
+  .sidebar-menu li.dropdown > .sub-menu-ul {
+    display: flex !important;
+    flex-direction: column !important;
+    list-style: none !important;
+    padding: 0 !important;
+    padding-left: 0.75rem !important;
+    margin: 0 !important;
+    border: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    position: static !important;
+    width: auto !important;
+    min-width: 0 !important;
+    pointer-events: auto !important;
+    gap: 0.125rem !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    transition: max-height 0.35s ease, opacity 0.3s ease !important;
+  }
+
+  .sidebar-menu li.is-open > .dropdown-menu,
+  .sidebar-menu li.is-open > .sub-menu-ul {
+    max-height: 1000px !important;
+    opacity: 1 !important;
+    margin-top: 0.25rem !important;
+    margin-left: 0.5rem !important;
+    padding-left: 0.5rem !important;
+    border-left: 2px solid rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    border-top-right-radius: 0.75rem !important;
+    border-bottom-right-radius: 0.75rem !important;
+  }
+
+  .sidebar-menu .sub-menu-ul :is(a, span).nav-link:not(.dropdown-toggle) {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: #9ca3af !important;
+    border-radius: 0 !important;
+  }
+
+  .sidebar-menu .sub-menu-ul :is(a, span).nav-link:not(.dropdown-toggle):hover {
+    color: #fff !important;
+    background-color: transparent !important;
+  }
+
+  .sidebar-menu li.dropdown > a:not(.dropdown-toggle),
+  .sidebar-menu li.dropdown > span {
+    padding-right: 3rem !important;
+  }
+
+  /* ---------- Contact items ---------- */
+  .sidebar-contact {
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.2s;
+  }
+
+  .sidebar-contact:hover {
+    color: #fff;
+  }
+
+  .sidebar-contact i {
+    margin-right: 0.75rem;
+    font-size: 1.125rem;
+    color: var(--primary, #d80101);
+    flex-shrink: 0;
+  }
+
+  .sidebar-contact a {
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.875rem;
+  }
+
+  .sidebar-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* ---------- Scroll lock ---------- */
+  body.sidebar-open,
+  html.sidebar-open {
+    overflow: hidden !important;
+  }
+
+  /* ---------- Sidebar Hamburger Toggle Animation ---------- */
+  #sidebarMenuToggle[aria-expanded="true"] .bar-1 {
+    top: 50% !important;
+    transform: translateY(-50%) rotate(45deg) !important;
+  }
+
+  #sidebarMenuToggle[aria-expanded="true"] .bar-2 {
+    opacity: 0 !important;
+    transform: translateY(-50%) scaleX(0) !important;
+  }
+
+  #sidebarMenuToggle[aria-expanded="true"] .bar-3 {
+    bottom: 50% !important;
+    transform: translateY(50%) rotate(-45deg) !important;
+  }
+
+  /* ==========================================================================
+   LIGHT VARIANT — mobile sidebar for the light headers
+   (simpleHeader, simpleHeaderRightMenu, simpleHeaderCenterLogoWithMenu).
+   Standard drawer list: full-width rows with dividers, text aligned with the
+   logo (16px), current page in the brand colour, submenus on a grey band.
+   The dark rules above stay the default for headerWithSidebarMenu.
+   ========================================================================== */
+  .sidebar-light {
+    --sb-text: #0f172a;
+    --sb-muted: #475569;
+    --sb-line: #f1f5f9;
+    --sb-sub-bg: #f8fafc;
+    --sb-accent: var(--primary, #22c55e);
+  }
+
+  .sidebar-light .sidebar-menu .menu-ul {
+    gap: 0 !important;
+  }
+
+  .sidebar-light .sidebar-menu .menu-ul > li {
+    border-bottom: 1px solid var(--sb-line) !important;
+    padding-bottom: 0 !important;
+  }
+
+  .sidebar-light .sidebar-menu:last-of-type .menu-ul > li:last-child {
+    border-bottom: 1px solid var(--sb-line) !important;
+  }
+
+  /* ---------- Top-level rows ---------- */
+  .sidebar-light .sidebar-menu .menu-ul > li > :is(a, span).nav-link,
+  .sidebar-light .sidebar-menu .menu-ul > li > .menu-group > :is(a, span).nav-link {
+    min-height: 3.25rem !important;
+    padding: 0.875rem 1rem !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    color: var(--sb-text) !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .sidebar-light .sidebar-menu .menu-ul > li > :is(a, span).nav-link:active,
+  .sidebar-light .sidebar-menu .menu-ul > li > .menu-group > :is(a, span).nav-link:active {
+    background-color: var(--sb-sub-bg) !important;
+  }
+
+  /* Current page (and the parent of a current child page): brand colour text,
+     no bar, no background. The menu plugin marks the parent current-menu-ancestor. */
+  .sidebar-light .sidebar-menu .menu-ul > li.current-menu-item > :is(a, span).nav-link,
+  .sidebar-light .sidebar-menu .menu-ul > li > :is(a, span).nav-link.active,
+  .sidebar-light .sidebar-menu .menu-ul > li.current-menu-ancestor > .menu-group > :is(a, span).nav-link {
+    color: var(--sb-accent) !important;
+    font-weight: 600 !important;
+  }
+
+  /* ---------- Dropdown row: chevron covers the right edge of the row ---------- */
+  .sidebar-light .sidebar-menu li.dropdown > .menu-group {
+    position: relative;
+  }
+
+  .sidebar-light .sidebar-menu li.dropdown > .menu-group > :is(a, span).nav-link {
+    padding-right: 3.5rem !important;
+  }
+
+  .sidebar-light .sidebar-menu .dropdown-toggle {
+    top: 0 !important;
+    right: 0 !important;
+    width: 3.5rem !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    color: var(--sb-muted) !important;
+    background-color: transparent !important;
+  }
+
+  .sidebar-light .sidebar-menu .dropdown-toggle:focus-visible {
+    outline: 2px solid var(--sb-accent);
+    outline-offset: -2px;
+  }
+
+  .sidebar-light .sidebar-menu li.is-open > .menu-group > .dropdown-toggle {
+    color: var(--sb-text) !important;
+    background-color: transparent !important;
+  }
+
+  /* ---------- Submenu: smooth height animation (grid 0fr -> 1fr) ---------- */
+  .sidebar-light .sidebar-menu li.dropdown > .dropdown-menu {
+    display: grid !important;
+    grid-template-rows: 0fr !important;
+    max-height: none !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background-color: var(--sb-sub-bg) !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+    transition: grid-template-rows 0.25s ease !important;
+  }
+
+  .sidebar-light .sidebar-menu li.dropdown.is-open > .dropdown-menu {
+    grid-template-rows: 1fr !important;
+  }
+
+  .sidebar-light .sidebar-menu li.dropdown > .dropdown-menu > .sub-menu-ul {
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .sidebar-light .sidebar-menu .sub-menu-ul > li {
+    border-top: 1px solid var(--sb-line);
+  }
+
+  .sidebar-light .sidebar-menu .sub-menu-ul :is(a, span).nav-link:not(.dropdown-toggle) {
+    padding: 0.75rem 1rem 0.75rem 2rem !important;
+    font-size: 0.9375rem !important;
+    font-weight: 400 !important;
+    color: var(--sb-muted) !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+  }
+
+  .sidebar-light .sidebar-menu .sub-menu-ul :is(a, span).nav-link:not(.dropdown-toggle):active {
+    background-color: var(--sb-line) !important;
+  }
+
+  .sidebar-light .sidebar-menu .sub-menu-ul li.current-menu-item > :is(a, span).nav-link,
+  .sidebar-light .sidebar-menu .sub-menu-ul :is(a, span).nav-link.active {
+    color: var(--sb-accent) !important;
+    font-weight: 500 !important;
+  }
+
+  @media (hover: hover) {
+    .sidebar-light .sidebar-menu .menu-ul > li > :is(a, span).nav-link:hover,
+    .sidebar-light .sidebar-menu .menu-ul > li > .menu-group > :is(a, span).nav-link:hover,
+    .sidebar-light .sidebar-menu .sub-menu-ul :is(a, span).nav-link:not(.dropdown-toggle):hover {
+      color: var(--sb-accent) !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-light .sidebar-menu li.dropdown > .dropdown-menu {
+      transition: none !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   Sidebar panel in the site palette (DESIGN.md §6). Both variants use the
+   Parchment panel; .sidebar-editorial is the wider desktop sidebar of the
+   headerWithSidebarMenu layout, with serif top-level items.
+   ========================================================================== */
+@layer components {
+  .sidebar-overlay-premium {
+    background-color: color-mix(in srgb, var(--surface-dark) 35%, transparent);
+    backdrop-filter: blur(4px);
+  }
+
+  #offcanvasRight.sidebar-light {
+    --sb-text: var(--ink);
+    --sb-muted: var(--graphite);
+    --sb-line: color-mix(in srgb, var(--warm-taupe) 70%, transparent);
+    --sb-sub-bg: var(--aged-paper);
+    --sb-accent: var(--accent);
+    width: 22rem;
+    max-width: 88vw;
+    background-color: var(--parchment);
+    color: var(--ink);
+    box-shadow: var(--shadow-float);
+  }
+
+  .sidebar-light .sidebar-top {
+    height: 64px;
+    padding-inline: 16px;
+    border-bottom: 1px solid var(--sb-line);
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--warm-taupe);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  .sidebar-close-btn:hover {
+    background-color: var(--aged-paper);
+    border-color: var(--ink);
+  }
+
+  .sidebar-light .sidebar-foot {
+    padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--sb-line);
+    background-color: var(--aged-paper);
+  }
+
+  .sidebar-contact-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .sidebar-contact-link:hover {
+    background-color: var(--parchment);
+    color: var(--accent);
+  }
+
+  .sidebar-contact-icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    background-color: var(--parchment);
+    color: var(--accent);
+  }
+
+  /* ---------- Desktop sidebar (editorial) ---------- */
+  #offcanvasRight.sidebar-editorial {
+    width: 30rem;
+  }
+
+  .sidebar-editorial .sidebar-top,
+  .sidebar-editorial .sidebar-foot {
+    padding-inline: 32px;
+  }
+
+  .sidebar-eyebrow {
+    display: block;
+    padding: 32px 32px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .sidebar-editorial .sidebar-menu .menu-ul {
+    margin-inline: 32px !important;
+  }
+
+  .sidebar-editorial .sidebar-menu .menu-ul > li > :is(a, span).nav-link,
+  .sidebar-editorial .sidebar-menu .menu-ul > li > .menu-group > :is(a, span).nav-link {
+    min-height: 4rem !important;
+    padding: 0.875rem 0 !important;
+    font-family: var(--heading-font-family) !important;
+    font-size: 1.75rem !important;
+    font-weight: var(--heading-weight) !important;
+    line-height: 1.2 !important;
+    letter-spacing: normal !important;
+  }
+
+  .sidebar-editorial .sidebar-menu .menu-ul > li.current-menu-item > :is(a, span).nav-link,
+  .sidebar-editorial .sidebar-menu .menu-ul > li.current-menu-ancestor > .menu-group > :is(a, span).nav-link {
+    font-weight: 400 !important;
+  }
+
+  .sidebar-editorial .sidebar-menu .dropdown-toggle {
+    width: 2.5rem !important;
+  }
+
+  .sidebar-editorial .sidebar-menu li.dropdown > .dropdown-menu {
+    background-color: transparent !important;
+  }
+
+  .sidebar-editorial .sidebar-menu .sub-menu-ul > li {
+    border-top: 0;
+  }
+
+  .sidebar-editorial .sidebar-menu .sub-menu-ul :is(a, span).nav-link:not(.dropdown-toggle) {
+    padding: 0.5rem 0 !important;
+    font-size: 1rem !important;
+  }
+
+  .sidebar-editorial .sidebar-menu li.dropdown.is-open > .dropdown-menu > .sub-menu-ul {
+    padding-bottom: 16px !important;
+  }
+}
+
+@layer utilities {
+  /* The floating chat button would sit over an open menu panel or modal */
+  body:is(:has(#offcanvasRight:not([style*="display: none"])), .overflow-hidden) :is(.aii-chat, #ai-chat-widget, #ai-chat-toggle) {
+    display: none !important;
+  }
+}

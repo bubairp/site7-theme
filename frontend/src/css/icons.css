@@ -1,0 +1,13 @@
+/* Tabler icon font, self-hosted from npm (version pinned in package.json).
+   Built as its own entry (src/icons.js) and loaded without blocking first paint. */
+@import '@tabler/icons-webfont/dist/tabler-icons.min.css';
+
+/* Same family as above, redeclared so the browser uses woff2 only and swaps
+   instead of blocking text rendering while the font loads. */
+@font-face {
+  font-family: "tabler-icons";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('@tabler/icons-webfont/dist/fonts/tabler-icons.woff2') format('woff2');
+}

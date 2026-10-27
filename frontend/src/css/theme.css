@@ -1,0 +1,306 @@
+/* =========================================
+   GLOBAL DEFAULT VARIABLES
+   ========================================= */
+:root {
+  /* Role tokens: every design defines these (Editorial values, DESIGN.md §2).
+     Templates use them as Tailwind utilities: bg-surface, bg-surface-alt,
+     bg-surface-dark, border-line, text-strong, text-body, text-muted,
+     text-on-dark, text-on-primary. Theme Settings (/styles.css) can still
+     override --primary, --body-bg … from the CMS. */
+  --surface: #fef9ef;       /* canvas: page, header, inputs */
+  --surface-alt: #f5eee1;   /* cards, alternate sections, footer */
+  --surface-dark: #2a2b2f;  /* dark sections (data-theme="dark") */
+  --surface-dark-hover: #3a3b40; /* dark button hover */
+  --line: #d1c9bf;          /* hairlines, borders */
+  --text-strong: #2a2b2f;   /* headings, strong text */
+  --text-body: #333333;     /* body copy */
+  --text-muted: #515151;    /* captions, meta */
+  --on-dark: #fef9ef;       /* text and marks on dark sections and photos */
+  --on-primary: #fef9ef;    /* text on primary buttons */
+  --design-white: #fef9ef;         /* what "white" utilities draw in this design */
+  --design-black: #18191c;         /* what "black" utilities draw in this design */
+
+  /* Neutral ramp: gray-, slate-, zinc- and neutral-* utilities all draw these */
+  --neutral-50: #faf4e8;
+  --neutral-100: #f5eee1;
+  --neutral-200: #e7dfd3;
+  --neutral-300: #d1c9bf;
+  --neutral-400: #aaa197;
+  --neutral-500: #736c64;
+  --neutral-600: #515151;
+  --neutral-700: #333333;
+  --neutral-800: #2a2b2f;
+  --neutral-900: #212226;
+  --neutral-950: #18191c;
+
+  /* Headings */
+  --heading-weight: 400;
+  --heading-tracking: normal;
+  --heading-em-style: italic; /* <em> inside h1–h3 */
+  --heading-em-weight: 300;
+  --quote-weight: var(--heading-weight); /* testimonial quotes, large statements */
+  --quote-style: italic;                 /* pull quotes */
+  --pullquote-weight: 300;               /* pull quotes in rich text */
+  --lead-weight: 300;                    /* lead paragraphs under titles */
+
+  /* Editorial palette names, kept as aliases for older templates and blocks */
+  --parchment: var(--surface);
+  --aged-paper: var(--surface-alt);
+  --warm-taupe: var(--line);
+  --ink: var(--text-strong);
+  --charcoal: var(--text-body);
+  --graphite: var(--text-muted);
+
+  /* Core Colors */
+  --primary: #b05a36;     /* terracotta: CTAs, eyebrows, active states only */
+  --primary-hover: color-mix(in srgb, var(--primary) 86%, black);
+  --accent: var(--primary); /* accent text and strokes: eyebrows, active links, icon lines (bg-primary stays the CTA fill) */
+  --secondary: var(--aged-paper);
+  --success: #2f7a4f;
+  --info: #3f6f9a;
+  --warning: #c98a1b;
+  --danger: #ba1a1a;
+  --dark: var(--surface-dark);
+  --light: var(--on-dark);
+
+  /* Body */
+  --body-bg: var(--parchment);
+  --body-color: var(--charcoal);
+  --link-color: var(--ink);
+  --link-hover-color: var(--primary);
+
+  /* Typography */
+  --body-font-family: "Inter Variable", "Inter", system-ui, sans-serif;
+  --heading-font-family: "Fraunces Variable", "Fraunces", Georgia, serif;
+  --btn-font-family: "Inter Variable", "Inter", system-ui, sans-serif;
+  --body-font-size: 16px;
+  --body-tracking: -0.011em;
+
+  /* Border Radius Scale */
+  --radius-sm: 0.75rem;     /* 12px — nav dropdowns, small media */
+  --radius-base: 1rem;      /* 16px — images inside cards */
+  --radius-card: 1.5rem;    /* 24px — cards, images, modals */
+  --radius-card-lg: 1.5rem; /* 24px — large cards */
+  --radius-pill: 9999px;    /* pills, avatars, inputs */
+  --btn-border-radius: 2.5rem; /* 40px — pill buttons */
+  --form-border-radius: 9999px; /* pill inputs */
+
+  /* Depth: surfaces first; only two shadows */
+  --shadow-float: 0 32px 80px -12px rgba(42, 43, 47, 0.14);
+  --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.08);
+  /* Scrolled header: a soft, wide Ink shadow (same family as --shadow-float) and no
+     hairline, so the bar lifts off the page instead of being ruled off from it */
+  --shadow-header: 0 12px 32px -20px rgba(42, 43, 47, 0.22);
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Z-Index Stack */
+  --z-base: 1;
+  --z-dropdown: 30;
+  --z-sticky: 40;
+  --z-menu: 45;
+  --z-header: 50;
+  --z-overlay: 55;
+  --z-modal: 60;
+  --z-toast: 70;
+
+  /* Swiper Variables */
+  --swiper-bullet-size: 0.5rem;
+  --swiper-bullet-bg: color-mix(in srgb, var(--text-strong) 24%, transparent); /* inactive dots: readable on light and tinted sections */
+  --swiper-bullet-active-bg: var(--primary);
+  --swiper-theme-color: var(--primary);
+  --swiper-bullet-spacer: 0.375rem;
+
+  /* Header Menu Variables */
+  --menu-primary: var(--primary);
+  --menu-text: var(--charcoal);
+  --menu-mob-text: var(--ink);
+  --menu-bg: transparent;
+  --menu-hover-color: var(--ink);
+  --menu-hover-bg: transparent;
+  /* Current page (and the parent of the current page): terracotta, DESIGN.md §6 */
+  --menu-active-color: var(--primary);
+  --menu-sub-hover-color: var(--ink);
+  --menu-sub-hover-bg: var(--aged-paper);
+  --menu-dropdown-bg: var(--parchment);
+  --menu-dropdown-border: var(--warm-taupe);
+
+  /* Desktop Menu */
+  --menu-font-size: 15px;
+  --menu-item-gap: 0;
+  --menu-link-gap: 4px;
+  --menu-item-padding-y: 6px;
+  --menu-item-padding-x: 14px;
+  --menu-sub-font-size: 0.85rem;
+  --menu-sub-item-gap: 8px;
+  --menu-sub-item-padding-y: 10px;
+  --menu-sub-item-padding-x: 12px;
+
+  /* Mobile Menu */
+  --menu-mob-hover-color: var(--ink);
+  --menu-mob-hover-bg: var(--aged-paper);
+  --menu-mob-sub-text: var(--charcoal);
+  --menu-mob-sub-hover-color: var(--ink);
+  --menu-mob-sub-hover-bg: var(--aged-paper);
+  --menu-mob-dropdown-bg: color-mix(in srgb, var(--aged-paper) 60%, transparent);
+  --menu-mob-panel-bg: var(--parchment);
+  --menu-hamburger-color: var(--ink);
+  --menu-mob-font-size: 1rem;
+  --menu-mob-item-gap: 2px;
+  --menu-mob-item-padding-y: 10px;
+  --menu-mob-item-padding-x: 16px;
+
+  /* Laptop Menu */
+  --menu-laptop-font-size: 0.8rem;
+  --menu-laptop-item-padding-y: 6px;
+  --menu-laptop-item-padding-x: 10px;
+
+  /* Global Menu */
+  --menu-radius: 0.75rem;
+  --menu-dropdown-w: 220px;
+  --menu-z-index: 45;
+  --menu-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --menu-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --menu-transition-fast: 0.2s var(--menu-ease-spring);
+  --menu-transition-medium: 0.3s var(--menu-ease-spring);
+}
+
+/* =========================================
+   TAILWIND GLOBAL THEME VARIABLES
+   ========================================= */
+
+@theme {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-dark: var(--dark);
+  --color-light: var(--light);
+  --color-bodyBg: var(--body-bg);
+  --color-bodyText: var(--body-color);
+  --color-link: var(--link-color);
+  --color-linkHover: var(--link-hover-color);
+  --font-sans: var(--body-font-family);
+  --font-heading: var(--heading-font-family);
+  --font-button: var(--btn-font-family);
+  --text-bodySize: var(--body-font-size);
+
+  /* Role utilities: bg-surface, bg-surface-alt, bg-surface-dark, border-line,
+     text-strong, text-body, text-muted, text-on-dark, text-on-primary … */
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-surface-dark: var(--surface-dark);
+  --color-line: var(--line);
+  --color-strong: var(--text-strong);
+  --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
+  --color-on-dark: var(--on-dark);
+  --color-on-primary: var(--on-primary);
+
+  /* Editorial palette names (bg-parchment, bg-paper, text-ink …), kept as
+     aliases so older templates and Library blocks follow the active design */
+  --color-parchment: var(--surface);
+  --color-paper: var(--surface-alt);
+  --color-taupe: var(--line);
+  --color-ink: var(--text-strong);
+  --color-charcoal: var(--text-body);
+  --color-graphite: var(--text-muted);
+
+  /* "white" and "black" are the design's own (Editorial: Parchment, warm ink) */
+  --color-white: var(--design-white);
+  --color-black: var(--design-black);
+
+  /* Neutral ramp. Templates use gray-/slate-/zinc-/neutral-* utilities
+     directly, so remapping the scales re-themes all of them at once. */
+  --color-gray-50: var(--neutral-50);
+  --color-gray-100: var(--neutral-100);
+  --color-gray-200: var(--neutral-200);
+  --color-gray-300: var(--neutral-300);
+  --color-gray-400: var(--neutral-400);
+  --color-gray-500: var(--neutral-500);
+  --color-gray-600: var(--neutral-600);
+  --color-gray-700: var(--neutral-700);
+  --color-gray-800: var(--neutral-800);
+  --color-gray-900: var(--neutral-900);
+  --color-gray-950: var(--neutral-950);
+  --color-slate-50: var(--neutral-50);
+  --color-slate-100: var(--neutral-100);
+  --color-slate-200: var(--neutral-200);
+  --color-slate-300: var(--neutral-300);
+  --color-slate-400: var(--neutral-400);
+  --color-slate-500: var(--neutral-500);
+  --color-slate-600: var(--neutral-600);
+  --color-slate-700: var(--neutral-700);
+  --color-slate-800: var(--neutral-800);
+  --color-slate-900: var(--neutral-900);
+  --color-slate-950: var(--neutral-950);
+  --color-zinc-50: var(--neutral-50);
+  --color-zinc-100: var(--neutral-100);
+  --color-zinc-200: var(--neutral-200);
+  --color-zinc-300: var(--neutral-300);
+  --color-zinc-400: var(--neutral-400);
+  --color-zinc-500: var(--neutral-500);
+  --color-zinc-600: var(--neutral-600);
+  --color-zinc-700: var(--neutral-700);
+  --color-zinc-800: var(--neutral-800);
+  --color-zinc-900: var(--neutral-900);
+  --color-zinc-950: var(--neutral-950);
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
+
+  /* Depth comes from surfaces; small sharp shadows draw nothing (DESIGN.md §4) */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: var(--shadow-float);
+  --shadow-xl: var(--shadow-float);
+  --shadow-2xl: 0 40px 100px -16px rgba(42, 43, 47, 0.18);
+}
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* =========================================
+   DARK MODE OVERRIDES
+   ========================================= */
+[data-theme="dark"] {
+  /* Dark Body */
+  --body-bg: var(--dark);
+  --body-color: color-mix(in srgb, var(--parchment) 86%, transparent);
+  --link-color: var(--parchment);
+
+  /* Dark Menu Variables */
+  --menu-dropdown-bg: var(--ink);
+  --menu-dropdown-border: color-mix(in srgb, #ffffff 12%, transparent);
+
+  --menu-text: color-mix(in srgb, var(--parchment) 86%, transparent);
+  --menu-hover-color: #ffffff;
+  --menu-hover-bg: color-mix(in srgb, #ffffff 10%, transparent);
+  /* Terracotta on Ink is ~3:1, too low for 15px text: white + underline instead */
+  --menu-active-color: #ffffff;
+
+  --menu-sub-hover-color: #ffffff;
+  --menu-sub-hover-bg: color-mix(in srgb, #ffffff 8%, transparent);
+
+  --menu-mob-text: #e2e8f0;
+  --menu-mob-hover-color: #ffffff;
+  --menu-mob-hover-bg: color-mix(in srgb, #ffffff 10%, transparent);
+  --menu-mob-sub-text: #cbd5e1;
+  --menu-mob-sub-hover-color: #ffffff;
+  --menu-mob-sub-hover-bg: color-mix(in srgb, #ffffff 8%, transparent);
+
+  --menu-mob-dropdown-bg: color-mix(in srgb, #ffffff 5%, transparent);
+  --menu-mob-panel-bg: var(--ink);
+  --menu-hamburger-color: var(--parchment);
+}

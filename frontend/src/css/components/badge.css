@@ -1,0 +1,6 @@
+@layer components {
+  /* Pill badge: Parchment, Taupe hairline, terracotta label (DESIGN.md §5) */
+  .tw-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-[0.08em] leading-none bg-parchment text-accent border border-solid border-taupe dark:bg-parchment/10 dark:text-parchment dark:border-parchment/20;
+  }
+}

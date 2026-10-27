@@ -1,0 +1,64 @@
+/* base/globals.css */
+@layer base {
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentcolor);
+    }
+
+    html {
+        background-color: var(--parchment);
+        scroll-padding-top: 6rem;
+        /* Keep the scrollbar's space reserved, so locking scroll for the sidebar,
+           modals or mobile menu (overflow: hidden) doesn't shift the page sideways. */
+        scrollbar-gutter: stable;
+    }
+
+    /* Page scroll lock while a modal, menu or lightbox is open (js/utils/scroll-lock.js) */
+    html.scroll-locked {
+        overflow: hidden;
+    }
+
+    /* Full-screen backdrops also cover that reserved strip; with inset: 0 alone they
+       stop at the gutter and leave a light band down the right edge while open.
+       (The lightbox does the same in vendors/gallery.css.) */
+    .tw-modal__backdrop,
+    .sidebar-overlay,
+    .sidebar-overlay-premium {
+        width: 100vw;
+    }
+
+    body {
+        background-color: var(--body-bg);
+        color: var(--body-color);
+    }
+
+    a {
+        transition: color 0.2s var(--ease-out-soft), text-decoration-color 0.2s var(--ease-out-soft);
+    }
+
+    /* Alpine: hide x-show elements that start closed until Alpine has initialised,
+       so search panels, accordions etc. don't flash open on page load. */
+    [x-cloak] {
+        display: none !important;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        ::before,
+        ::after {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}

@@ -1,0 +1,92 @@
+@layer components {
+  /* Forms (DESIGN.md §5): Parchment pill inputs, terracotta focus ring */
+  .tw-form-label {
+    @apply block text-sm font-semibold mb-2 text-ink dark:text-parchment;
+  }
+
+  .tw-form-control,
+  .tw-form-select {
+    @apply block w-full min-h-[3.25rem] px-5 py-3 text-base font-normal text-ink dark:text-parchment bg-parchment dark:bg-parchment/5 bg-clip-padding border border-solid border-gray-400 dark:border-parchment/20 m-0 placeholder:text-gray-500 dark:placeholder:text-parchment/50;
+    border-radius: var(--form-border-radius, 9999px);
+    transition: border-color 0.2s var(--ease-out-soft), box-shadow 0.2s var(--ease-out-soft);
+  }
+
+  .tw-form-control:focus,
+  .tw-form-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+
+  /* A field the script marked invalid (payments.js): danger line and ring */
+  :is(.tw-form-control, .tw-form-select).is-invalid {
+    border-color: var(--danger);
+  }
+
+  :is(.tw-form-control, .tw-form-select).is-invalid:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+  }
+
+  textarea.tw-form-control {
+    @apply min-h-[9rem] py-4;
+    border-radius: 1.25rem;
+  }
+
+  .tw-form-control[type="file"] {
+    @apply p-0 min-h-0 file:px-5 file:py-3 file:bg-paper file:border-0 file:text-ink file:mr-4 file:cursor-pointer hover:file:bg-gray-200;
+  }
+
+  .tw-form-select {
+    @apply bg-no-repeat appearance-none pr-12;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232a2b2f' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-position: right 1.25rem center;
+    background-size: 14px 10px;
+  }
+
+  .tw-form-checkbox,
+  .tw-form-radio {
+    @apply w-5 h-5 mt-0.5 align-top bg-parchment bg-no-repeat bg-center bg-contain border-[1.5px] border-solid border-gray-400 appearance-none cursor-pointer focus:outline-none checked:bg-primary checked:border-primary;
+  }
+
+  .tw-form-checkbox {
+    @apply rounded-md;
+  }
+
+  .tw-form-radio {
+    @apply rounded-full;
+  }
+
+  .tw-form-checkbox:checked {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fef9ef' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M5 10.5l3.5 3.5L15 7'/%3e%3c/svg%3e");
+  }
+
+  .tw-form-radio:checked {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3ccircle cx='10' cy='10' r='4' fill='%23fef9ef'/%3e%3c/svg%3e");
+  }
+
+  .tw-form-check-label {
+    @apply inline-block text-base text-charcoal dark:text-parchment/85 cursor-pointer;
+  }
+
+  .tw-form-error {
+    @apply w-full mt-1.5 px-5 text-sm text-danger hidden;
+  }
+
+  .was-validated :has(:invalid)>.tw-form-error,
+  .was-validated :invalid~.tw-form-error,
+  .is-invalid~.tw-form-error {
+    display: block;
+  }
+
+  .tw-form-error:empty {
+    display: none !important;
+  }
+
+  .tw-form-error.wf-error:not(:empty) {
+    display: block !important;
+  }
+
+  .tw-spinner-border {
+    @apply inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin;
+  }
+}

@@ -1,0 +1,137 @@
+@layer components {
+  /* Pill buttons (DESIGN.md §5): Inter 600, 40px radius, no shadows */
+  .tw-btn {
+    @apply px-7 py-3.5 text-[0.9375rem] leading-[1.2] inline-flex items-center justify-center gap-2 font-semibold no-underline cursor-pointer border-[1.5px] border-solid border-transparent;
+    font-family: var(--btn-font-family);
+    letter-spacing: -0.005em;
+    border-radius: var(--btn-border-radius, 2.5rem);
+    transition: background-color 0.2s var(--ease-out-soft), color 0.2s var(--ease-out-soft), border-color 0.2s var(--ease-out-soft), transform 0.2s var(--ease-out-soft);
+    /* Focus ring — WCAG 2.1 AA 2.4.7 */
+    @apply focus-visible:outline-none;
+  }
+
+  .tw-btn:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 28%, transparent);
+  }
+
+  .tw-btn:active {
+    transform: translateY(1px);
+  }
+
+  .tw-btn > i,
+  .tw-btn > .ti {
+    @apply text-[1.1em] leading-none;
+  }
+
+  /* ── Size Variants ─────────────────────────────────────────────── */
+  .tw-btn-sm {
+    @apply px-5 py-2.5 text-sm;
+  }
+
+  .tw-btn-lg {
+    @apply px-9 py-4 text-base;
+  }
+
+  .tw-btn-icon {
+    @apply p-2.5 aspect-square;
+  }
+
+  /* ── Disabled State (WCAG 2.1 — applies to all variants) ─────── */
+  .tw-btn:disabled,
+  .tw-btn[disabled],
+  .tw-btn[aria-disabled="true"] {
+    @apply opacity-50 cursor-not-allowed pointer-events-none;
+  }
+
+  /* ── Loading State ───────────────────────────────────────────── */
+  .tw-btn-loading {
+    @apply pointer-events-none relative;
+  }
+
+  .tw-btn-loading > :not(.tw-spinner-border) {
+    @apply opacity-0;
+  }
+
+  .tw-btn-loading > .tw-spinner-border {
+    @apply absolute inset-0 m-auto;
+  }
+
+  /* ── Primary: the one terracotta action ───────────────────────── */
+  .tw-btn-primary {
+    background-color: var(--primary);
+    color: var(--on-primary);
+  }
+
+  .tw-btn-primary:hover {
+    background-color: var(--primary-hover);
+    color: var(--on-primary);
+  }
+
+  /* ── Secondary / neutral: outlined in Ink, Aged Paper on hover ── */
+  .tw-btn-secondary,
+  .tw-btn-outline-dark,
+  .tw-btn-outline-secondary {
+    @apply bg-transparent text-ink border-ink hover:bg-paper hover:text-ink;
+  }
+
+  .tw-btn-outline-primary {
+    @apply bg-transparent text-primary border-primary hover:bg-primary hover:text-on-primary;
+  }
+
+  .tw-btn-dark {
+    @apply bg-surface-dark text-on-dark hover:bg-[var(--surface-dark-hover)] hover:text-on-dark;
+  }
+
+  /* Light/white: for photos and dark sections only */
+  .tw-btn-light,
+  .tw-btn-white {
+    @apply bg-parchment text-ink hover:bg-paper hover:text-ink;
+  }
+
+  .tw-btn-outline-light {
+    @apply bg-transparent text-parchment border-parchment/70 hover:bg-parchment hover:text-ink hover:border-parchment;
+  }
+
+  /* Inside dark sections the neutral outline flips to Parchment */
+  [data-theme="dark"] :is(.tw-btn-secondary, .tw-btn-outline-dark, .tw-btn-outline-secondary) {
+    @apply text-parchment border-parchment/70 hover:bg-parchment hover:text-ink hover:border-parchment;
+  }
+
+  /* ── Semantic (forms/alerts only) ─────────────────────────────── */
+  .tw-btn-danger {
+    @apply bg-danger text-parchment hover:opacity-90 hover:text-parchment;
+  }
+
+  .tw-btn-success {
+    @apply bg-success text-parchment hover:opacity-90 hover:text-parchment;
+  }
+
+  .tw-btn-warning {
+    @apply bg-warning text-ink hover:opacity-90 hover:text-ink;
+  }
+
+  .tw-btn-info {
+    @apply bg-info text-parchment hover:opacity-90 hover:text-parchment;
+  }
+
+  .tw-btn-outline-success {
+    @apply bg-transparent border-success text-success hover:bg-success hover:text-parchment;
+  }
+
+  .tw-btn-outline-danger {
+    @apply bg-transparent border-danger text-danger hover:bg-danger hover:text-parchment;
+  }
+
+  .tw-btn-outline-warning {
+    @apply bg-transparent border-warning text-warning hover:bg-warning hover:text-ink;
+  }
+
+  .tw-btn-outline-info {
+    @apply bg-transparent border-info text-info hover:bg-info hover:text-parchment;
+  }
+
+  /* ── Ghost / text link with arrow ─────────────────────────────── */
+  .tw-btn-ghost {
+    @apply bg-transparent text-ink px-3 hover:bg-paper hover:text-ink dark:text-parchment dark:hover:bg-parchment/10;
+  }
+}

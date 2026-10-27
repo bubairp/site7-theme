@@ -1,0 +1,44 @@
+@layer components {
+  /* Cards: Aged Paper, no border, 24px radius, depth from surface not shadow */
+  .tw-card {
+    @apply flex flex-col min-w-0 break-words bg-paper dark:bg-parchment/5 border-0 rounded-3xl overflow-hidden motion-reduce:transform-none;
+    transition: transform 0.3s var(--ease-out-soft), box-shadow 0.3s var(--ease-out-soft), background-color 0.3s var(--ease-out-soft);
+  }
+
+  .tw-card-body {
+    @apply flex-1 p-6 md:p-8;
+  }
+
+  .tw-card-title {
+    @apply mb-2 text-[1.375rem] lg:text-2xl leading-[1.25] text-ink dark:text-parchment;
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-weight);
+  }
+
+  .tw-card-text {
+    @apply mb-4 text-charcoal dark:text-parchment/75;
+  }
+
+  .tw-card-text:last-child {
+    @apply mb-0;
+  }
+
+  .tw-card-footer {
+    @apply px-6 md:px-8 py-4 bg-transparent border-t border-solid border-taupe/70 dark:border-parchment/10 mt-auto;
+  }
+
+  /* ── card-hover: floating shadow on hover, no lift, no colour change ── */
+  .card-hover {
+    transition: transform 0.3s var(--ease-out-soft), box-shadow 0.3s var(--ease-out-soft);
+    @apply motion-reduce:transform-none;
+  }
+
+  .card-hover:hover {
+    box-shadow: var(--shadow-float);
+  }
+
+  /* ── Category/tag pill ── */
+  .tw-badge-category {
+    @apply inline-block px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] rounded-full bg-parchment text-accent border border-solid border-taupe;
+  }
+}
