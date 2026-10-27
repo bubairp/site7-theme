@@ -1,0 +1,112 @@
+{% import "_macros/utils" as utils %}
+{% extends "_layouts/matrix-content" %}
+{% import "_macros/images" as images %}
+
+{% set form_id = entry.selectForm.id ?? null %}
+
+{% block content_title %}
+	{# The contact page renders its own header (below) #}
+{% endblock %}
+
+{% block before_content_matrix %}
+	{% set pageStyle = entry.pageStyle.one() %}
+	{% set themeSwitche = pageStyle.themeColor ?? null %}
+	{% from '_macros/page-style' import psClasses, psStyle, psResponsive %}
+
+	{# ---------- Content from the CMS (Contact single + General settings) ---------- #}
+	{# A Standard Banner Slider replaces the built-in header (it renders above, from
+	   _layouts/matrix-content); otherwise the header uses the H1 title fields. #}
+	{% import "_macros/layout" as layout %}
+	{% set hasBanner = not (bannerHidden ?? false) and (entry.standardBannerSlider ?? null) is not null and entry.standardBannerSlider|length %}
+	{# "Hide H1 title" applies while a banner shows; a hidden banner always brings the header back #}
+	{% set showHeader = not hasBanner and (not (entry.hideTitleHere ?? false) or (bannerHidden ?? false)) %}
+	{% set pageHeading = entry.h1Title ?: entry.title %}
+	{% set titleAlign = entry.titleAlign.value ?? 'start' %}
+	{% set titleAlign = titleAlign in ['center', 'end'] ? titleAlign : 'start' %}
+	{% set pageIntro = entry.shortDescription ?? null %}
+	{% set formHeading = entry.formTitle ?: 'Send us a message'|t %}
+	{% set address = entry.showAddress and generalEntry.Description|length ? generalEntry.Description : null %}
+	{% set email = entry.showEmail and generalEntry.email|length ? generalEntry.email : null %}
+	{% set phone = entry.showPhone and generalEntry.phoneNumber|length ? generalEntry.phoneNumber : null %}
+	{% set timing = entry.showTiming and generalEntry.timing|length ? generalEntry.timing : [] %}
+	{% set socialMedia = generalEntry.socialMedia.all() %}
+	{% set showMap = entry.getFieldLayout().getFieldByHandle('showMap') ? entry.showMap : false %}
+	{% set mapQuery = showMap and address ? address|striptags|replace({'&nbsp;': ' '})|trim : null %}
+	{% set hasDetails = address or email or phone or timing|length or socialMedia|length %}
+
+	<section class="contact-content-section {{ psClasses(entry.pageStyle) }} entry-{{ entry.id }}-style" style="{{ psStyle(entry.pageStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}">
+		{{ psResponsive(entry.pageStyle, '.entry-' ~ entry.id ~ '-style') }}
+
+		{# ---------- Page header ---------- #}
+		{% if showHeader %}
+		<div class="page-hero">
+			<div class="{{ layout.titleContainerClass(entry.titleContainerWidth.value ?? null) }}">
+				<div class="page-hero-grid no-media {{ titleAlign == 'center' ? 'is-center' : (titleAlign == 'end' ? 'is-end' : '') }}">
+					<div class="page-hero-copy">
+						{% include "_components/breadcrumbs" with { inline: true } %}
+						<h1 class="page-hero-title">{{ pageHeading }}</h1>
+						{% if pageIntro %}
+							<p class="page-hero-lead">{{ pageIntro }}</p>
+						{% endif %}
+						{% if phone or email %}
+							<div class="page-hero-actions">
+								{% if phone %}
+									<a href="tel:{{ phone|replace({' ': ''}) }}" class="tw-btn tw-btn-primary no-underline gap-2">
+										<i class="ti ti-phone text-lg" aria-hidden="true"></i>{{ 'Call us'|t }}
+									</a>
+								{% endif %}
+								{% if email %}
+									<a href="mailto:{{ email }}" class="tw-btn tw-btn-secondary no-underline gap-2">
+										<i class="ti ti-mail text-lg" aria-hidden="true"></i>{{ 'Email us'|t }}
+									</a>
+								{% endif %}
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endif %}
+
+		<div class="container mx-auto px-4 py-10 md:py-14 lg:py-16">
+			<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+				{# ---------- Form (first on mobile, left on desktop) ---------- #}
+				<div class="{{ hasDetails ? 'lg:col-span-7' : 'lg:col-span-8 lg:col-start-3' }}">
+					<div class="tw-card p-6 md:p-8 lg:p-10 [&_.tw-form-control]:py-3 [&_.tw-form-select]:py-3">
+						<h2 class="text-2xl font-bold mb-1">{{ formHeading }}</h2>
+						<p class="text-slate-500 dark:text-slate-400 mb-6">{{ 'Fill in the form and we will get back to you.'|t }}</p>
+						{% if form_id %}
+							{% include "_forms/contact" %}
+						{% endif %}
+					</div>
+				</div>
+
+				{# ---------- Contact details (one compact card) ---------- #}
+				{% if hasDetails %}
+					{% include "_components/contact-details" with { address: address, email: email, phone: phone, timing: timing, socialMedia: socialMedia } only %}
+				{% endif %}
+			</div>
+
+			{# ---------- Map (CMS "Show MAP"), built from the site address ---------- #}
+			{% if mapQuery %}
+				<div class="tw-card mt-6 lg:mt-8 p-0 overflow-hidden bg-slate-100 dark:bg-slate-800">
+					<iframe
+						class="block w-full h-[320px] md:h-[420px] border-0"
+						src="https://maps.google.com/maps?q={{ mapQuery|url_encode }}&output=embed"
+						title="{{ 'Map'|t }}: {{ mapQuery }}"
+						loading="lazy"
+						referrerpolicy="no-referrer-when-downgrade"
+						allowfullscreen></iframe>
+				</div>
+			{% endif %}
+		</div>
+	</section>
+{% endblock %}
+
+{# Matrix blocks added to the Contact page render below the contact section #}
+
+{% block before_end_body_tag %}
+	{{ parent() }}
+	{{ craft.vite.script('src/js/pages/contact.js') }}
+{% endblock %}

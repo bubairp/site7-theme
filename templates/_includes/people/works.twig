@@ -1,0 +1,43 @@
+{# A person's work, shared by team member and author pages: the books they wrote (Book
+   products whose Author is this person) and the blog posts they wrote (Post Author).
+   One Aged Paper band; each group is left out when empty, the band when both are.
+   Expects: person (entry). #}
+{% set firstName = person.title|split(' ')|first %}
+{% set books = craft.entries().section('products').type('book').relatedTo({ targetElement: person, field: 'selectAuthor' }).with(['image', 'productCategory', 'selectAuthor']).orderBy('postDate DESC').all() %}
+{% set posts = craft.entries().section('blogs').relatedTo({ targetElement: person, field: 'postAuthor' }).with(['image', 'blogCategories', 'postAuthor']).orderBy('postDate DESC').limit(6).all() %}
+
+{% if books|length or posts|length %}
+	<section class="article-related person-works">
+		<div class="container mx-auto px-4">
+			{% if books|length %}
+				<div class="person-works-group">
+					<div class="section-head is-left related-head">
+						<span class="section-eyebrow">{{ 'Books'|t }}</span>
+						<h2 class="block-heading-title section-title">{{ 'Books by {name}'|t('site', { name: firstName }) }}</h2>
+					</div>
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+						{% for product in books %}
+							{% include "_components/_products/productCard.twig" with { product: product } %}
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+
+			{% if posts|length %}
+				<div class="person-works-group">
+					<div class="section-head is-left related-head">
+						<span class="section-eyebrow">{{ 'Journal'|t }}</span>
+						<h2 class="block-heading-title section-title">{{ 'Writing by {name}'|t('site', { name: firstName }) }}</h2>
+					</div>
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+						{% for blog in posts %}
+							<article class="flex flex-col">
+								{% include "_components/_blog/blogCard.twig" with { blog: blog, variant: 'card' } %}
+							</article>
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+		</div>
+	</section>
+{% endif %}

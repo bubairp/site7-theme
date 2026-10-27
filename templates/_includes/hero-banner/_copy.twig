@@ -1,0 +1,18 @@
+{# Hero copy, shared by the three layouts: eyebrow (Subtitle, when Display Title is on),
+   heading (h1 on the first slide; <em> allowed), lead (Description, when its switch is
+   on), the check list (_list.twig) unless the layout places it itself, and buttons.
+   Expects: slide, headingTag, eyebrowClass, withList (default true). #}
+{% import '_components/ctaButton' as buttons %}
+{% if slide.displayTitle and slide.subtitle|length %}
+	<span class="{{ eyebrowClass }}">{{ slide.subtitle }}</span>
+{% endif %}
+<{{ headingTag }} class="hero-title">{{ slide.heading|raw }}</{{ headingTag }}>
+{% if slide.switchOffDes and slide.description|length %}
+	<div class="hero-lead">{{ slide.description }}</div>
+{% endif %}
+{% if withList ?? true %}
+	{% include "_includes/hero-banner/_list" with { items: (slide.displayCheckList ?? false) ? (slide.checkListShowTable ?? []) : [] } %}
+{% endif %}
+{% if slide.button|length %}
+	<div class="hero-actions">{{ buttons.renderButton(slide.button.all()) }}</div>
+{% endif %}

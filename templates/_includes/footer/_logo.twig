@@ -1,0 +1,19 @@
+{#
+	Footer logo: General > Footer Logo, else the site logo. The site logo is drawn for light
+	backgrounds, so on a dark footer (Footer > Style > Background with Theme Dark) an SVG logo is
+	printed inline and recoloured like the header's (fills Parchment, strokes terracotta), and any
+	other format goes light. A dedicated Footer Logo is shown as uploaded.
+	Params: sizeClass (height classes)
+#}
+{% set footerLogoAsset = generalEntry.footerLogo.one() ?? null %}
+{% set logoAsset = footerLogoAsset ?? generalEntry.logo.one() ?? null %}
+{% set recolour = footerLogoAsset is null %}
+{% set logoAlt = generalEntry.companyName ?: siteName %}
+{% if logoAsset and logoAsset.extension|lower == 'svg' %}
+	{{ svg(logoAsset)|attr({
+		class: 'block w-auto ' ~ sizeClass ~ (recolour ? ' dark:[&_[fill]:not([fill=none])]:fill-on-dark dark:[&_text]:fill-on-dark dark:[&_[stroke]:not([stroke=none])]:stroke-primary' : ''),
+		width: false, height: false, role: 'img', 'aria-label': logoAlt
+	}) }}
+{% elseif logoAsset %}
+	<img src="{{ logoAsset.url }}" alt="{{ logoAlt }}" class="block w-auto {{ sizeClass }} {{ recolour ? 'dark:brightness-0 dark:invert' : '' }}">
+{% endif %}

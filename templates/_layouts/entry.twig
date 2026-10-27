@@ -1,0 +1,128 @@
+{% extends "_layouts/base" %}
+{% import "_macros/images" as images %}
+
+{% set seo = entry is defined and entry ? entry.basicSeo : null %}
+{% set body_classes = body_classes ?? ('entry entry-' ~ (entry.id ?? '') ~ '-style ' ~ (entry.slug ?? '') ~ ' ' ~ (entry is defined and entry.type is defined ? entry.type.handle : '')) %}
+{% set main_classes = 'page-wrapper' %}
+{# Does the page open with a hero / page banner (rendered in <header> as .header-banner),
+   and is it a photo? Decided here so the Floating glass header (components/header.css)
+   is right on the very first paint, before the banner itself has been parsed.
+   Home hero: heroBannerSlider (layout 3 is a full-bleed photo; layouts 1-2 open on a
+   colour band, light text when the first slide's "Theme dark" is on). Standard pages:
+   standardBannerSlider (layout 3 is the full-bleed photo). #}
+{# "Hide Banner" (Banner tab, off by default): the page renders without its hero / page
+   banner. Checked here once: header_banner is skipped, the header is a plain bar and the
+   breadcrumb bar comes back. #}
+{% set bannerHidden = entry is defined and entry and (entry.hideBanner ?? false) %}
+{% set _heroSlides = entry is defined and entry and (entry.heroBannerSlider ?? null) ? entry.heroBannerSlider.count() : 0 %}
+{% set _bannerSlides = entry is defined and entry and (entry.standardBannerSlider ?? null) ? entry.standardBannerSlider.count() : 0 %}
+{# Service, team member, author and product category templates pass bannerFallback (their own
+   title / description / image) when they have no banner slides #}
+{% set _fallback = _bannerSlides == 0 ? (bannerFallback ?? null) : null %}
+{% set _bannerLayout = (entry is defined and entry ? (entry.bannerLayout.value ?? '') : '') ?: (_fallback.layout ?? '') %}
+{% set _hasHeaderBanner = not bannerHidden and (_heroSlides > 0 or _bannerSlides > 0 or _fallback is not null) %}
+{% set _heroDark = _heroSlides > 0 and (_bannerLayout == 'sliderLayout3' or (entry.heroBannerSlider.one().themeDark ?? false)) %}
+{% set _bannerIsPhoto = not bannerHidden and (_heroDark
+	or (_bannerSlides > 0 and _bannerLayout == 'sliderLayout3')
+	or (_fallback is not null and _fallback.media and _bannerLayout == 'sliderLayout3')) %}
+{% set header_classes = header_classes ?? ((_hasHeaderBanner ? 'has-header-banner' : '') ~ (_bannerIsPhoto ? ' has-banner-photo' : ''))|trim %}
+{% block favicon %}
+	{% if generalEntry.favicon.one() ?? false %}
+		{% set url = generalEntry.favicon.one().getUrl() %}
+		<link rel="icon shortcut" href="{{ url }}">
+		<link rel="icon" href="{{ url }}">
+		<link rel="apple-touch-icon" href="{{ url }}">
+	{% endif %}
+{% endblock %}
+
+
+{# Inter is self-hosted (frontend/src/css/base/fonts.css). These preconnects are
+   for the Google Fonts @import in the CMS "Additional CSS" field. #}
+{% do craft.prefetch.preconnect('//fonts.googleapis.com') %}
+{% do craft.prefetch.preconnect('//fonts.gstatic.com') %}
+
+{% block head_extra %}
+	{{ craft.vite.script("src/index.js", false) }}
+	{% css %}
+		.grecaptcha-badge{ display:none !important;}
+	{% endcss %}
+{% endblock %}
+
+{% block after_body_tag %}
+	<!-- Ai Chat -->
+	<div class="aii-chat">{% include "ai-chat/index" %}</div>
+
+	<!-- Back to top button -->
+	<a class="tw-btn-scroll-top fixed bottom-5 right-5 z-1030 flex items-center justify-center w-10 h-10 text-xl text-slate-800 dark:text-slate-200 bg-slate-200 dark:bg-slate-800 rounded-full shadow-lg opacity-0 scale-0 transition-all duration-300 ease-in-out before:content-[''] before:absolute before:top-px before:left-px before:z-[-1] before:w-[calc(100%-2px)] before:h-[calc(100%-2px)] before:bg-white dark:before:bg-slate-900 before:rounded-full no-underline" href="#top" data-scroll aria-label="Scroll back to top">
+		<svg class="absolute top-0 left-0 block rotate-90 w-10 h-10" viewbox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="20" cy="20" r="19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"></circle>
+		</svg>
+		<i class="ti ti-arrow-up"></i>
+	</a>
+{% endblock %}
+{% block before_end_body_tag %}
+	{% if additionalCssJs.codeCss %}
+		{% css %}
+		{{additionalCssJs.codeCss | raw}}
+		{% endcss %}
+	{% endif %}
+
+	{% if additionalCssJs.codeJs %}
+		{% js %}
+		{{ additionalCssJs.codeJs | raw }}
+		{% endjs %}
+	{% endif %}
+{% endblock %}
+{# Site-wide entries used by the header, footer and blocks: one query each. #}
+{% set absolutePath = craft.app.path.siteTemplatesPath() %}
+{% set globalEagerLoad = ['button', 'background', 'spacing'] %}
+{% set generalEntry = craft.entries().section('general').type('general').with(globalEagerLoad|merge(['logo', 'footerLogo', 'favicon'])).one() %}
+{% set headerEntry = craft.entries().section('header').type('header').with(globalEagerLoad).one() %}
+{% set footerEntry = craft.entries().section('footer').type('footer').with(globalEagerLoad).one() %}
+{% set appLinksEntry = generalEntry.appLinks ?? null %}
+{% block header %}
+	{% block header_top %}
+		{% cache using key 'site-header-' ~ (headerEntry.dateUpdated.timestamp ?? '0') %}
+		{% if headerEntry is defined and headerEntry %}
+			{% include '_includes/header/index' %}
+		{% endif %}
+		{% endcache %}
+		{% if craft.app.user and craft.app.user.isAdmin and entry is defined and entry and entry.getCpEditUrl() %}
+			<a href="{{ entry.getCpEditUrl() }}" aria-label="Edit Page" class="page-edit-btn tw-btn tw-btn-square py-2 px-3  no-underline bg-primary text-on-primary border-none fixed top-1/2 inset-e-0 rounded-s-xl rounded-e-none z-30 md:flex items-center justify-center shadow-lg shadow-primary/25" target="_blank">
+				<i class="ti ti-edit text-xl"></i>
+			</a>
+		{% endif %}
+	{% endblock %}
+	{% if not bannerHidden %}{% block header_banner %}{% endblock %}{% endif %}
+{% endblock %}
+{% block before_content %}
+	{# Pages with a page banner show the breadcrumb inside it; blogs, products, case studies
+	   and contact render their own. A hidden banner brings the breadcrumb bar back. #}
+	{% set standardBanner = entry is defined and entry ? (entry.standardBannerSlider ?? null) : null %}
+	{% set hasStandardBanner = not bannerHidden and standardBanner is not null and standardBanner|length > 0 %}
+	{% set _section = entry is defined and entry ? entry.section.handle : null %}
+	{% set _ownCrumbs = _section in ['blogs', 'products', 'casestudies', 'contact'] %}
+	{% set _bannerCrumbs = _section in ['teamMembers', 'authors', 'services'] %}
+	{% if _section and not _ownCrumbs and (bannerHidden or (not _bannerCrumbs and not hasStandardBanner)) %}
+		{% include "_components/breadcrumbs" with (_section == 'authors' ? { hideSectionLink: true } : {}) %}
+	{% endif %}
+{% endblock %}
+{% block footer %}
+	{% if footerEntry is defined and footerEntry %}
+		{# Newsletter band (Footer > Newsletter tab). Outside the footer cache: its form carries a
+		   CSRF token, and a page hides it with "Hide Footer Newsletter" or its own Newsletter block. #}
+		{% set nlPage = entry is defined and entry ? entry : null %}
+		{% set nlHidden = nlPage and ((nlPage.hideFooterNewsletter ?? false)
+			or craft.entries().ownerId(nlPage.id).field('matrixContent').type('newsletter').exists()) %}
+		{# The Boxed footer shows the newsletter inside its card instead of as a band. Its form then
+		   carries a CSRF token, so that footer is rendered fresh rather than cached. #}
+		{% set footerIsBoxed = (footerEntry.footerLayout.value ?? '') == 'boxedFooter' %}
+		{% set nlInFooter = footerEntry.displaySubscribe and not nlHidden %}
+		{% if nlInFooter and not footerIsBoxed %}
+			{% include '_includes/footer/newsletter' %}
+		{% endif %}
+		{% cache using key 'site-footer-' ~ (footerEntry.dateUpdated.timestamp ?? '0') unless footerIsBoxed and nlInFooter %}
+		{% include '_includes/footer/index' %}
+		{% endcache %}
+	{% endif %}
+{% endblock %}

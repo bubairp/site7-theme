@@ -1,0 +1,62 @@
+{% extends "_layouts/entry" %}
+{% import "_macros/images" as images %}
+{% import "_macros/utils" as utils %}
+{% set teamMember = craft.entries()
+    .section('teamMembers')
+    .slug(craft.app.request.segment(2))
+    .one() %}
+
+{% set pageStyle = entry.pageStyle.one() %}
+
+{# Standard page banner: the member's own Banner slides if any, otherwise their name,
+   role · focus and the team photo (Feature Image) #}
+{% set bannerFallback = teamMember ? {
+	heading: teamMember.title,
+	description: [teamMember.plainTextRole ?? null, teamMember.plainText ?? null]|filter(v => v|length)|join(' · '),
+	media: teamMember.featureImage.one() ?? null,
+	layout: 'sliderLayout3',
+} : null %}
+
+{% block header_banner %}
+	{% if teamMember %}
+		{% cache using key 'team-hero-' ~ teamMember.id ~ '-' ~ teamMember.dateUpdated.timestamp %}
+		{% set standardBannerSliders = (teamMember.standardBannerSlider ?? null) ? teamMember.standardBannerSlider.all() : [] %}
+		<div class="header-banner">
+			{% include "_includes/page-banner/standard-banner" %}
+		</div>
+		{% endcache %}
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+	{% if teamMember %}
+
+
+		{% set themeSwitche = pageStyle.themeColor ?? null %}
+		{% from '_macros/page-style' import psClasses, psStyle, psResponsive %}
+
+
+
+		<div class="{{ psClasses(entry.pageStyle) }} entry-{{ entry.id }}-style" style="{{ psStyle(entry.pageStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}">{{ psResponsive(entry.pageStyle, '.entry-' ~ entry.id ~ '-style') }}
+			{% cache using key 'tmh-' ~ teamMember.id ~ '-' ~ teamMember.dateUpdated.timestamp %}
+			{% include "_includes/people/profile" with {
+				person: teamMember,
+				photo: teamMember.image.one() ?? null,
+				role: teamMember.plainTextRole ?? null,
+				focus: teamMember.plainText ?? null,
+				phone: teamMember.plainTextPhone ?? null,
+				email: teamMember.email ?? null,
+				bio: teamMember.description ?? null,
+			} %}
+
+			{% include "_includes/matrix-container" with {
+                entry: teamMember,
+                cache_key: 'entry-' ~ teamMember.id
+                }
+            %}
+			{% endcache %}
+
+			{% include "_includes/people/works" with { person: teamMember } %}
+		</div>
+	{% endif %}
+{% endblock %}

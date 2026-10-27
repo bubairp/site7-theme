@@ -1,0 +1,62 @@
+{#
+	Newsletter form (Wheelform, AJAX) with its thank-you box and error line. Used by the newsletter
+	section (_components/newsletter) and the Boxed footer's newsletter column.
+
+	Params:
+	  formId   Wheelform form id
+	  uid      unique suffix for the element ids
+	  variant  'pill' (default): input and button in one Parchment pill, stacked on phones
+	           'outline': an outlined input and a separate button pill (Boxed footer)
+	  align    'center' or 'left' (thank-you box text)
+#}
+{% set variant = variant ?? 'pill' %}
+{% set responseId = 'newsletter-response-' ~ uid %}
+{% set form = formId ? wheelform.form({ id: formId, submitButton: false }) : null %}
+
+<div id="{{ responseId }}" class="hidden p-6 rounded-[var(--radius-card)] bg-surface-alt {{ (align ?? 'center') == 'left' ? 'text-left' : 'text-center' }} dark:bg-on-dark/10 dark:text-on-dark/80" role="status">
+	<p class="m-0 mb-1 font-heading font-[var(--heading-weight)] text-[1.375rem] text-strong dark:text-on-dark">{{ 'Thank you!'|t }}</p>
+	<p class="m-0" id="{{ responseId }}-message"></p>
+</div>
+
+{% if form %}
+	{{ form.open('', {
+		'class': 'needs-validation newsletter-form',
+		'data-ajax': 'true',
+		'data-success-wrapper': responseId,
+		'data-success-message-id': responseId ~ '-message',
+		'data-loading-text': 'Loading...'|t,
+		'data-recaptcha-key': getenv('RECAPTCHA_SITE_KEY')
+	}, 'POST') }}
+		{{ wheelform.getRecaptchaV3() }}
+		{% if variant == 'outline' %}
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+		{% else %}
+			{# Pill from 640px; on phones a card with a full-height input above a full-width button #}
+			<div class="flex flex-col items-stretch gap-1.5 p-1.5 rounded-[var(--radius-card)] border border-gray-400 bg-surface transition-[border-color,box-shadow] duration-200 focus-within:border-primary focus-within:ring-3 focus-within:ring-primary/25 sm:flex-row sm:items-center sm:rounded-full dark:border-transparent">
+		{% endif %}
+			{% for field in form.fields %}
+				{% if field.type == 'honeypot' or field.name == 'rp_field' %}
+					<div style="display:none;">
+						<input type="text" name="{{ field.name }}" value="" autocomplete="off" tabindex="-1">
+					</div>
+				{% elseif field.type != 'hidden' %}
+					{% if variant == 'outline' %}
+						<input type="email" name="{{ field.name }}" class="flex-none sm:flex-1 min-w-0 h-[52px] px-5 rounded-full border border-gray-400 bg-transparent text-base text-strong placeholder:text-muted outline-none shadow-none transition-[border-color,box-shadow] duration-200 focus:border-primary focus:ring-3 focus:ring-primary/25 dark:border-on-dark/30 dark:text-on-dark dark:placeholder:text-on-dark/60" placeholder="{{ 'Email address'|t }}" aria-label="{{ field.label }}" autocomplete="email" required>
+					{% else %}
+						<input type="email" name="{{ field.name }}" class="flex-none sm:flex-1 min-w-0 h-[52px] sm:h-12 px-4 sm:px-[18px] border-0 bg-transparent text-base text-strong placeholder:text-muted outline-none shadow-none focus:ring-0" placeholder="{{ 'Your email address'|t }}" aria-label="{{ field.label }}" autocomplete="email" required>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+			<button class="tw-btn tw-btn-primary wf-submit-btn shrink-0 w-full justify-center sm:w-auto" type="submit">
+				<span class="button-text">{{ 'Subscribe'|t }}</span>
+				<svg class="hidden tw-loading animate-spin ms-2 w-5 h-5" role="status" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="wf-error mt-2 text-sm text-danger dark:text-[#f2b8ad] [&:not(:empty)]:!block" data-field="email" style="display: none;"></div>
+	</form>
+{% elseif currentUser and currentUser.admin %}
+	<p class="mt-2 text-sm text-danger dark:text-[#f2b8ad]">{{ 'Choose a form in the Newsletter settings.'|t }}</p>
+{% endif %}

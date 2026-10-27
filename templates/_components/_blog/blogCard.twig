@@ -1,0 +1,31 @@
+{% import '_macros/images' as images %}
+{# variant: 'card' (grid/slider) or 'row' (list view: image beside the text) #}
+{% set variant = variant ?? 'card' %}
+{% set blogCats = blog.blogCategories.all() %}
+
+<div class="post-card post-card--{{ variant }} group relative">
+	{% if blog.image|length %}
+		<a href="{{ blog.url }}" class="post-card-media" tabindex="-1" aria-hidden="true">
+			{{ images.singleImg(blog.image.0, variant == 'row' ? 560 : 480, {'ratio': 1.6}, 'w-full h-full object-cover', { alt: blog.title }) }}
+		</a>
+	{% endif %}
+	<div class="post-card-body">
+		<div class="post-card-meta">
+			{% for cat in blogCats %}
+				<a href="{{ siteUrl(craft.app.request.pathInfo) }}?category={{ cat.slug }}" class="post-card-tag relative z-20">{{ cat.title }}</a>
+			{% endfor %}
+			<span>{{ blog.postDate|date('M j, Y') }}</span>
+		</div>
+		<h3 class="post-card-title">
+			<a href="{{ blog.url }}" class="after:absolute after:inset-0" aria-label="{{ blog.title }} — {{ 'Read article'|t }}">{{ blog.title }}</a>
+		</h3>
+		{% if blog.shortDescription|length %}
+			<p class="post-card-text">{{ blog.shortDescription|striptags }}</p>
+		{% endif %}
+		<div class="post-card-foot">
+			{% set byline = (blog.postAuthor ?? null) ? blog.postAuthor.one() : null %}
+			{% if byline %}<span>{{ 'By'|t }} {{ byline.title }}</span>{% endif %}
+			<span class="post-card-link" aria-hidden="true">{{ 'Read article'|t }}<i class="ti ti-arrow-right"></i></span>
+		</div>
+	</div>
+</div>

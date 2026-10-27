@@ -1,0 +1,19 @@
+{% if headingAndContent and (headingAndContent.heading|length or headingAndContent.Description|length or headingAndContent.badgeText|length) %}
+	{% set alignVal = headingAndContent.align.value ?? headingAndContent.align ?? 'center' %}
+	{% set alignMap = {'left': 'is-left', 'start': 'is-left', 'center': 'is-center', 'right': 'is-right', 'end': 'is-right'} %}
+	{% set alignClass = alignMap[alignVal] ?? 'is-center' %}
+	{% set headingTag = headingAndContent.headingTags.value ?? headingAndContent.headingTags ?? 'h2' %}
+	{% set headingTag = headingTag ?: 'h2' %}
+
+	<div class="header-content-block section-head {{ alignClass }} {{ blockCssClasses ?? '' }} {{ (blockType is defined and blockType and blockType != 'headingContent') ? blockType ~ '-style' : '' }}" data-theme="{{ themeSwitche ?? null ? 'dark' : 'light' }}">
+		{% if headingAndContent.switchOff and headingAndContent.badgeText|length %}
+			<span class="section-eyebrow smallText-badge">{{ headingAndContent.badgeText }}</span>
+		{% endif %}
+		{% if headingAndContent.heading|length %}
+			<{{ headingTag }} class="block-heading-title section-title">{{ headingAndContent.heading|raw }}</{{ headingTag }}>
+		{% endif %}
+		{% if headingAndContent.Description|length %}
+			<div class="block-description section-lead tw-rich-text">{{ headingAndContent.Description|raw }}</div>
+		{% endif %}
+	</div>
+{% endif %}

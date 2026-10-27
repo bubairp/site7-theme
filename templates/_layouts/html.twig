@@ -1,0 +1,102 @@
+{% apply spaceless %}
+<!DOCTYPE html>
+<html lang="{% block lang %}en-GB{% endblock %}">
+	<head>
+		{% block head %}
+			<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+			<meta name="referrer" content="origin-when-cross-origin"/>
+
+			{% block seo %}
+				{% hook "seo" %}
+			{% endblock %}
+
+			{% block structured_data %}{% endblock %}
+
+			{% block favicon %}
+				{% if favicon is defined and favicon %}
+					{% set url = favicon.getUrl('icon') %}
+					<link rel="icon shortcut" href="{{ url }}">
+					<link rel="icon" href="{{ url }}">
+					<link rel="apple-touch-icon" href="{{ url }}">
+				{% endif %}
+			{% endblock %}
+
+			{% block head_extra %}{% endblock %}
+
+			{# Slider pre-layout. Swiper is code-split and starts after the page has painted, so
+			   until then each slider would show every slide stacked. As each .swiper arrives in
+			   the HTML (before it is painted), read its slidesPerView/spaceBetween for the current
+			   width from data-swiper-options; css/vendors/swiper.css lays the slides out in one
+			   row from these variables until Swiper takes over. #}
+			<script>
+				(function () {
+					function prep(el) {
+						if (el.__swPre) return;
+						el.__swPre = 1;
+						var o;
+						try { o = JSON.parse(el.getAttribute('data-swiper-options') || '{}'); } catch (e) { return; }
+						var w = window.innerWidth, per = o.slidesPerView, gap = o.spaceBetween, bp = o.breakpoints || {};
+						Object.keys(bp).map(Number).sort(function (a, b) { return a - b; }).forEach(function (k) {
+							if (w >= k && bp[k]) {
+								if (bp[k].slidesPerView != null) per = bp[k].slidesPerView;
+								if (bp[k].spaceBetween != null) gap = bp[k].spaceBetween;
+							}
+						});
+						per = parseFloat(per);
+						if (!(per > 0)) per = 1;
+						el.__swPer = per;
+						el.style.setProperty('--swiper-pre-cols', per);
+						el.style.setProperty('--swiper-pre-gap', (parseFloat(gap) || 0) + 'px');
+					}
+					function scan(root) {
+						if (root.matches && root.matches('.swiper[data-swiper-options]')) prep(root);
+						if (root.querySelectorAll) [].forEach.call(root.querySelectorAll('.swiper[data-swiper-options]'), prep);
+						// The pagination follows the slides in the markup, so they are all parsed by now:
+						// if they fit in one view, Swiper will hide the pagination, so hide it already.
+						var pagers = root.matches && root.matches('.swiper-pagination') ? [root] : [];
+						if (root.querySelectorAll) pagers = pagers.concat([].slice.call(root.querySelectorAll('.swiper-pagination')));
+						pagers.forEach(function (p) {
+							var sw = p.closest('.swiper');
+							if (sw && sw.__swPer && sw.querySelectorAll(':scope > .swiper-wrapper > .swiper-slide').length <= sw.__swPer) sw.setAttribute('data-swiper-pre-lock', '');
+						});
+					}
+					var mo = new MutationObserver(function (list) {
+						list.forEach(function (m) { [].forEach.call(m.addedNodes, function (n) { if (n.nodeType === 1) scan(n); }); });
+					});
+					mo.observe(document.documentElement, { childList: true, subtree: true });
+					document.addEventListener('DOMContentLoaded', function () { mo.disconnect(); scan(document); });
+				})();
+			</script>
+
+			{# Tabler icons, self-hosted (frontend/src/icons.js). Not render-critical, so
+			   the second argument loads its CSS asynchronously. #}
+			{{ craft.vite.script('src/icons.js', true) }}
+
+			{{ head() }}
+			{% if craft.vite.devServerRunning() %}
+				<!-- In Vite dev mode: load /styles.css dynamically to override Vite's runtime CSS injected styles -->
+				<script>
+					document.addEventListener('DOMContentLoaded', () => {
+						const link = document.createElement('link');
+						link.rel = 'stylesheet';
+						link.href = '/styles.css?v={{ now | date("U") }}';
+						document.head.appendChild(link);
+					});
+				</script>
+			{% else %}
+				<!-- In production mode: inline dynamic CSS -->
+				{# Same for every page; Craft invalidates this cache when the theme settings
+				   entry (or a related colour/font entry) is saved. #}
+				<style>
+					{% cache globally using key 'inline-dynamic-css' %}
+					{% include "_dynamic-css" %}
+					{% endcache %}
+				</style>
+			{% endif %}
+		{% endblock %}
+	</head>
+	{% block body %}{% endblock %}
+</html>
+{% endapply %}

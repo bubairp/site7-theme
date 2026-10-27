@@ -1,0 +1,20 @@
+{% import "_macros/images" as images %}
+{% import "_macros/ratings" as ratings %}
+
+{# Quote-first card (DESIGN.md §8): serif quote, then the person. #}
+<figure class="testimonial-card">
+	<span class="testimonial-mark" aria-hidden="true">&ldquo;</span>
+	<blockquote class="testimonial-quote">{{ testimonial.comment }}</blockquote>
+	<figcaption class="testimonial-person">
+		{% if testimonial.image|length %}
+			{{ images.singleImg(testimonial.image.0, 112, {'ratio': 1}, 'testimonial-avatar') }}
+		{% endif %}
+		<span class="testimonial-meta">
+			<span class="testimonial-name">{{ testimonial.authorName }}</span>
+			{% if testimonial.authorRole|length %}<span class="testimonial-role">{{ testimonial.authorRole }}</span>{% endif %}
+		</span>
+		{% if testimonial.ratings ?? false %}
+			<span class="testimonial-rating">{{ ratings.stars(testimonial.ratings, '13px') }}</span>
+		{% endif %}
+	</figcaption>
+</figure>

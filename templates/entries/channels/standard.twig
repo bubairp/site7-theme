@@ -1,0 +1,15 @@
+{% extends "_layouts/matrix-content" %}
+
+{# Page Style (CMS): background, title and text colours for the page body #}
+{% block content %}
+	{% from '_macros/page-style' import psClasses, psStyle, psResponsive %}
+	{% set pageStyle = entry.pageStyle.one() ?? null %}
+	{% if pageStyle %}
+		<div class="{{ psClasses(entry.pageStyle) }} entry-{{ entry.id }}-style" style="{{ psStyle(entry.pageStyle) }}" data-theme="{{ (pageStyle.themeColor ?? null) ? 'dark' : 'light' }}">
+			{{ psResponsive(entry.pageStyle, '.entry-' ~ entry.id ~ '-style') }}
+			{{ parent() }}
+		</div>
+	{% else %}
+		{{ parent() }}
+	{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{#
+	Newsletter band above the footer: Footer > Newsletter tab. Rendered by _layouts/entry.twig
+	outside the footer cache (the form carries a CSRF token, and pages can hide the band).
+	Background empty: the Ink band. Otherwise its colour / image and Theme Dark switch.
+#}
+{% import "_macros/images" as images %}
+{% set hc = footerEntry.headingAndContent.one() ?? null %}
+{% set bg = footerEntry.newsletterBackground.one() ?? null %}
+{% set bgColor = bg ? (bg.colorLibrary.one().colorcode ?? null)|roleColor : null %}
+{% set bgImage = bg ? bg.image.one() : null %}
+{% set hasBackground = bgColor or bgImage %}
+{% set bgStyle = (bgColor ? 'background-color: ' ~ bgColor ~ ';' : '')
+	~ (bgImage ? 'background-image: url(\'' ~ images.bgImageUrl(bgImage)|trim ~ '\'); background-size: cover; background-position: center;' : '') %}
+
+{% include '_components/newsletter' with {
+	nl: {
+		eyebrow: (hc and hc.switchOff) ? hc.badgeText : '',
+		heading: hc.heading ?? '',
+		headingTag: hc.headingTags.value ?? 'h2',
+		description: hc.Description ?? '',
+		formId: footerEntry.selectForm.id ?? null,
+		disclaimer: footerEntry.disclaimer ?? '',
+		layout: 'centered',
+	},
+	uid: 'footer',
+	theme: (not hasBackground or (bg.themeDark ?? false)) ? 'dark' : 'light',
+	inkBand: not hasBackground,
+	sectionStyle: bgStyle,
+	media: footerEntry.backgroundVideo.one() ?? null,
+	hasImage: bgImage is not null,
+} only %}

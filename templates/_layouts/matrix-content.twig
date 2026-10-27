@@ -1,0 +1,41 @@
+{% extends "_layouts/entry" %}
+
+{# The page banner: the page's Banner slides, or the bannerFallback a template built from
+   its own fields (services, product categories). See _includes/page-banner/standard-banner. #}
+{% block header_banner %}
+	{% cache using key 'std-hero-' ~ entry.id ~ '-' ~ entry.dateUpdated.timestamp %}
+	{% set standardBannerSliders = (entry.standardBannerSlider ?? null) ? entry.standardBannerSlider.all() : [] %}
+	{% if standardBannerSliders|length > 0 or (bannerFallback ?? null) %}
+		<div class="header-banner">
+			{% include "_includes/page-banner/standard-banner" %}
+		</div>
+	{% endif %}
+	{% endcache %}
+{% endblock %}
+
+{% block content %}
+	{% block content_title %}
+		{# "Hide H1 title" applies while the banner shows (the banner carries the h1). With the
+		   banner hidden the title always shows: H1 Title, or the entry title when empty. #}
+		{% set pageH1 = (entry.h1Title ?? '')|length ? entry.h1Title : ((bannerHidden ?? false) ? entry.title : '') %}
+		{% if (not (entry.hideTitleHere ?? true) or (bannerHidden ?? false)) and pageH1|length %}
+			{% import "_macros/layout" as layout %}
+			{% set titleAlign = entry.titleAlign.value ?? 'start' %}
+			{% set pageLead = entry.shortDescription ?? null %}
+			<div class="page-title {{ layout.titleContainerClass(entry.titleContainerWidth.value ?? null) }} py-10 md:py-12 lg:py-16 text-{{ titleAlign }}">
+				<h1 class="block-heading-title mb-0">{{ pageH1 }}</h1>
+				{% if pageLead|length %}
+					<p class="page-title-lead">{{ pageLead }}</p>
+				{% endif %}
+			</div>
+		{% endif %}
+	{% endblock %}
+
+	{% block before_content_matrix %}{% endblock %}
+	{% block content_matrix %}
+		{% include "_includes/matrix-container" with {
+            cache_key: 'entry-' ~ entry.id
+        } %}
+	{% endblock %}
+	{% block after_content_matrix %}{% endblock %}
+{% endblock %}

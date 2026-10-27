@@ -1,0 +1,22 @@
+{# One hero media asset, filling its positioned parent: an image, a video file (MP4/WebM,
+   muted, looping) or an embedded video (Embedded Assets: YouTube/Vimeo, background mode).
+   Expects: m (asset), width (image transform width), eager (first slide: preload the
+   image, high fetch priority), class (extra classes, e.g. visibility), preloadMedia
+   (media query for the preload when a mobile asset swaps in), alt (optional). #}
+{% import "_macros/images" as images %}
+{% set alt = alt ?? '' %}
+<div class="hero-media {{ class ?? '' }}" {% if not alt %}aria-hidden="true"{% endif %}>
+	{% if m.kind == 'video' %}
+		<video class="hero-media-fill" autoplay loop muted playsinline preload="metadata">
+			<source src="{{ m.url }}" type="{{ m.mimeType }}">
+		</video>
+	{% elseif m.kind == 'json' %}
+		{% set embedded = craft.embeddedAssets.get(m) %}
+		{% if embedded %}
+			<div class="hero-media-embed">{{ embedded.getIframeCode(['autoplay=1', 'loop=1', 'muted=1', 'mute=1', 'controls=0', 'background=1', 'playsinline=1'])|raw }}</div>
+		{% endif %}
+	{% else %}
+		{% if eager ?? false %}{{ images.preloadBg(m, width, preloadMedia ?? null) }}{% endif %}
+		<img src="{{ images.bgImageUrl(m, width)|trim }}" alt="{{ alt }}" class="hero-media-fill" {% if eager ?? false %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+	{% endif %}
+</div>

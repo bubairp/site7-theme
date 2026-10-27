@@ -1,0 +1,37 @@
+{% import '_macros/images' as images %}
+{# Gallery collage (Image Gallery block, "Collage View"). Photos go in groups of five on a
+   four-column grid: one large 2x2 tile and four small ones, the large tile alternating
+   left and right. The last group reshapes itself so no row is left with gaps:
+   1 photo = one wide tile, 2 = two large tiles, 3 = large + two tall, 4 = large + two
+   small + one wide. Phones get two columns. Every photo opens the lightbox
+   (.gallery / .gallery-item, components/gallery.js).
+   Params: collageImages (assets). #}
+{% set collageImages = (collageImages ?? [])|filter(i => i)|values %}
+{% set total = collageImages|length %}
+
+{% if total %}
+	<div class="gallery gallery-collage grid grid-flow-dense grid-cols-2 auto-rows-[9rem] gap-3 sm:auto-rows-[11rem] md:grid-cols-4 md:gap-4 lg:auto-rows-[13rem]">
+		{% for image in collageImages %}
+			{% set group = loop.index0 // 5 %}
+			{% set pos = loop.index0 % 5 %}
+			{% set groupSize = min(5, total - group * 5) %}
+			{% set isLarge = pos == 0 or (groupSize == 2 and pos == 1) %}
+			{% set tileClass = isLarge ? 'is-large col-span-2 row-span-2' : '' %}
+			{% if groupSize == 1 %}
+				{% set tileClass = tileClass ~ ' md:col-span-4' %}
+			{% elseif pos == 0 and group is odd and groupSize > 2 %}
+				{% set tileClass = tileClass ~ ' md:col-start-3' %}
+			{% elseif groupSize == 3 and pos > 0 %}
+				{% set tileClass = 'md:row-span-2' %}
+			{% elseif groupSize == 4 and pos == 3 %}
+				{% set tileClass = 'col-span-2' %}
+			{% endif %}
+			<a class="gallery-item collage-item group relative block overflow-hidden rounded-3xl cursor-pointer [&_picture]:block [&_picture]:h-full {{ tileClass }}" href="{{ image.url }}">
+				{{ images.singleImg(image, isLarge ? 1200 : 640, {'ratio': 1}, 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-105') }}
+				<span class="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden="true">
+					<i class="ti ti-zoom-in text-3xl text-white"></i>
+				</span>
+			</a>
+		{% endfor %}
+	</div>
+{% endif %}

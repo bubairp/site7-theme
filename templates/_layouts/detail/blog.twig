@@ -1,0 +1,88 @@
+{#- Detail layout: blog (entries/channels/blog.twig).
+	Markup only: a design changes this page's layout by overriding this file
+	(designs/<handle>/templates/_layouts/detail/blog.twig). SEO, structured data and
+	the entry lookup stay in entries/channels/blog.twig, so their fixes reach every design.
+
+	Variables (layout contract, docs: DESIGN.md "Detail layouts"):
+	  element   the blog entry being shown (also as `blog`)
+	  entry     the routed entry (Page Style, CP edit link)
+	  plus the site globals every page has: generalEntry, headerEntry, footerEntry
+	A layout may read the element's fields; it never adds fields. -#}
+	{% import "_macros/images" as images %}
+	{% set pageStyle = entry.pageStyle.one() %}
+
+	{% if blog %}
+		{% set listing = craft.entries().section('standardPages').slug('blogs').one() %}
+		{% set listingUrl = listing.url ?? siteUrl('blogs') %}
+
+		{% embed "_components/page-style" with { owner: entry, pageClass: 'article-page' } %}{% block body %}
+			{% import "_macros/images" as images %}
+
+			{% cache using key 'bhd-' ~ blog.id ~ '-' ~ blog.dateUpdated.timestamp %}
+			{% set displayDate = blog.postDate %}
+			{% set eyebrow %}
+				{% for cat in blog.blogCategories.all() %}
+					<a class="article-pill" href="{{ listingUrl }}?category={{ cat.slug }}">{{ cat.title }}</a>
+				{% endfor %}
+				{% if displayDate %}<time datetime="{{ displayDate|date('Y-m-d') }}">{{ displayDate|date('F j, Y') }}</time>{% endif %}
+			{% endset %}
+			{% set meta %}
+				{# Post Author: a team member, or an author from the Authors section #}
+				{% set byline = (blog.postAuthor ?? null) ? blog.postAuthor.one() : null %}
+				{% if byline %}
+					{% set photo = (byline.image ?? null) ? byline.image.one() : null %}
+					<span class="article-byline">
+						<span class="article-avatar" aria-hidden="true">{% if photo %}{{ images.singleImg(photo, 72, {'ratio': 1}, 'w-full h-full object-cover', { alt: '' }) }}{% else %}{{ byline.title|slice(0, 1) }}{% endif %}</span>
+						{{ 'By'|t }} <a href="{{ byline.url }}"><strong>{{ byline.title }}</strong></a>
+					</span>
+				{% endif %}
+				{% set tags = blog.tags.all() %}
+				{% if tags|length %}
+					<span class="article-tags">{% for tag in tags %}<span>#{{ tag.title }}</span>{% endfor %}</span>
+				{% endif %}
+			{% endset %}
+			{% include "_components/article-hero" with {
+				element: blog,
+				eyebrow: eyebrow,
+				title: blog.title,
+				lead: blog.shortDescription,
+				meta: meta,
+				image: blog.image.one()
+			} %}
+			{% endcache %}
+
+			<div class="article-body">
+				{% include "_includes/matrix-container" with {
+					entry: blog,
+					cache_key: 'entry-' ~ blog.id
+				} %}
+			</div>
+
+			<div class="container mx-auto px-4">
+				<div class="article-column">
+					{% if generalEntry.displayBlogReview is defined and generalEntry.displayBlogReview|length %}
+						<div class="article-comments">
+							{% include "_components/comments" with { commentHandler: 'blogReview', activeUserReply: generalEntry.activeUserReplyBlog, pageStyle: pageStyle } %}
+						</div>
+					{% endif %}
+					<div class="article-end">
+						<a href="{{ listingUrl }}" class="article-back"><i class="ti ti-arrow-left" aria-hidden="true"></i>{{ 'All articles'|t }}</a>
+						<div class="article-end-cta">
+							<span>{{ 'Enjoyed this?'|t }}</span>
+							<a href="#footer" class="tw-btn tw-btn-secondary tw-btn-sm" data-scroll>{{ 'Get the newsletter'|t }}</a>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{% cache %}
+			{# Only render the related band when it has something in it #}
+			{% set relatedHtml %}{% include "_components/_blog/relatedBlogsCarousel" with { blog: blog } %}{% endset %}
+			{% if relatedHtml|trim|length %}
+				<div class="article-related" style="background-color: {{ (generalEntry.blogBackgroundColor.one().colorcode ?? '')|roleColor }}">
+					<div class="{{ generalEntry.blogRelatedContainerWidth.value|replace({'container-small': 'max-w-4xl mx-auto px-4', 'container': 'container mx-auto px-4'}) }}">{{ relatedHtml }}</div>
+				</div>
+			{% endif %}
+			{% endcache %}
+		{% endblock %}{% endembed %}
+	{% endif %}

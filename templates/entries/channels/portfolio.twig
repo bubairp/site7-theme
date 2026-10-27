@@ -1,0 +1,61 @@
+{% extends "_layouts/entry" %}
+{% import "_macros/images" as images %}
+
+{% set portfolio = craft.entries()
+    .section('portfolios')
+    .slug(craft.app.request.segment(2))
+    .one() %}
+
+{% block structured_data %}
+	{% if portfolio %}
+
+		{% set feature = portfolio.featureImage|length ? portfolio.featureImage.one() : null %}
+		{% set logo    = generalEntry.logo|length ? generalEntry.logo.one() : null %}
+
+		{# Base object #}
+		{% set data = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": portfolio.url
+        },
+        "headline": portfolio.title,
+        "datePublished": portfolio.postDate|date('c'),
+        "dateModified": (portfolio.dateUpdated is defined and portfolio.dateUpdated ? portfolio.dateUpdated|date('c') : portfolio.postDate|date('c')),
+        "author": {
+            "@type": "Person",
+            "name": portfolio.authorName ?? 'Admin'
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": generalEntry.companyName ?? 'Site Name'
+        }
+        } %}
+
+		{% if feature %}
+			{% set data = data|merge({ "image": [ feature.url ] }) %}
+		{% endif %}
+
+		{% if logo %}
+			{% set data = data|merge({
+            "publisher": data.publisher|merge({
+            "logo": {
+                "@type": "ImageObject",
+                "url": logo.url
+            }
+            })
+        }) %}
+		{% endif %}
+
+		<script type="application/ld+json">
+			{{ data|json_encode(constant('JSON_UNESCAPED_SLASHES'))|raw }}
+		</script>
+
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+	{# Markup: _layouts/detail/portfolio.twig (a design overrides that file, not this one) #}
+	{% include "_layouts/detail/portfolio" with { element: portfolio } %}
+{% endblock %}

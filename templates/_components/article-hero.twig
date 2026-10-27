@@ -1,0 +1,41 @@
+{#
+	Editorial article header for blog posts and case studies (DESIGN.md §8).
+	Aged Paper band: breadcrumb, eyebrow, serif title, lead, meta line; the cover
+	image sits in a rounded frame that overlaps the band's lower edge.
+
+	Params:
+	  element  – the entry (breadcrumbs)
+	  eyebrow  – HTML for the line above the title (pills / labels)
+	  title    – headline
+	  lead     – optional standfirst
+	  meta     – optional HTML under the lead (byline, tags)
+	  image    – optional asset for the cover
+#}
+{% import "_macros/images" as images %}
+
+<header class="article-hero {{ image ? 'has-cover' : 'no-cover' }}">
+	<div class="article-hero-band">
+		<div class="container mx-auto px-4">
+			<div class="article-hero-copy">
+				{% include "_components/breadcrumbs" with { inline: true, element: element } %}
+				{% if eyebrow ?? false %}
+					<div class="article-eyebrow">{{ eyebrow|raw }}</div>
+				{% endif %}
+				<h1 class="article-title">{{ title }}</h1>
+				{% if lead ?? false %}
+					<p class="article-lead">{{ lead }}</p>
+				{% endif %}
+				{% if meta ?? false %}
+					<div class="article-meta">{{ meta|raw }}</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	{% if image %}
+		<div class="container mx-auto px-4">
+			<figure class="article-cover">
+				<img src="{{ images.bgImageUrl(image, 1600)|trim }}" alt="{{ image.alt ?? title }}" fetchpriority="high" class="w-full h-full object-cover">
+			</figure>
+		</div>
+	{% endif %}
+</header>

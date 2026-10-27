@@ -1,0 +1,80 @@
+{% import "_macros/images" as images %}
+{% from '_macros/block-style' import bsClasses, bsStyle, bsResponsive, bsContainer %}
+
+{% set headingAndContent = block.headingAndContent.one() %}
+{% set imageTitleLink = block.imageTitleLink.all() ?? [] %}
+{% set blockStyle = block.blockStyle ?? [] %}
+{% set blockType = block.type.handle ?? '' %}
+{% set blockTypeUid = block.uid ?? '' %}
+
+{% set scopedSel = '.' ~ blockType ~ blockTypeUid ~ '-style' %}
+{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
+{% set themeSwitche = null %}
+{% set blockStyleData = blockStyle|length ? blockStyle.one() : null %}
+{% if blockStyleData and blockStyleData.background is defined %}
+	{% set themeSwitche = blockStyleData.background.one().themeDark ?? null %}
+{% endif %}
+
+{# Logos sit on the canvas without card chrome (DESIGN.md §8): grayscale at rest,
+   full colour on hover. Slider runs as a continuous row, list as one row
+   between hairlines, grid as a tiled wall. #}
+{% macro logo(item, showTitle) %}
+	{% import "_macros/images" as images %}
+	{% import "_macros/utils" as utils %}
+	{% set link = item.linkUrl ?? null %}
+	{% set image = item.image.one() ?? null %}
+	<{{ link ? 'a' : 'div' }} {% if link %}href="{{ link.url ?? link }}" {{ utils.newTabAttrs(link.url ?? link, 'noopener') }}{% endif %} class="logo-item group">
+		<span class="logo-mark">
+			{% if image %}
+				{% if image.extension == 'svg' %}
+					{{ images.singleImg(image, 160, {}, 'logo-img', { alt: item.title ?: 'Client logo' }) }}
+				{% else %}
+					{{ images.singleImg(image, 220, {}, 'logo-img', { alt: item.title ?: 'Client logo' }) }}
+				{% endif %}
+			{% elseif item.title %}
+				<span class="logo-wordmark">{{ item.title }}</span>
+			{% endif %}
+		</span>
+		{% if showTitle and item.title and image %}
+			<span class="logo-title">{{ item.title }}</span>
+		{% endif %}
+	</{{ link ? 'a' : 'div' }}>
+{% endmacro %}
+
+{% import _self as logos %}
+{% if imageTitleLink|length %}
+	{{ bsResponsive(blockStyle, scopedSel) }}
+
+	{% set showTitle = block.logoTitleDisplay ?? false %}
+	{% set displayMode = block.displayMode.value ?? 'sliderView' %}
+	{% set displayMode = {'Slider View': 'sliderView', 'List View': 'listView', 'Grid View': 'gridView'}[displayMode] ?? displayMode %}
+	{% set columnPerRow = block.columnPerRow.value ?? 'md-2' %}
+	{% set maxSlides = {'md-6': 2, 'md-4': 3, 'md-3': 4, 'md-2': 6}[columnPerRow] ?? 5 %}
+	{% set gridCols = {'md-6': 'md:grid-cols-2', 'md-4': 'md:grid-cols-3', 'md-3': 'md:grid-cols-4', 'md-2': 'md:grid-cols-6'}[columnPerRow] ?? 'md:grid-cols-6' %}
+
+	<section class="block-section logos-section logos-{{ displayMode }} {{ blockType }}{{ blockTypeUid }}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
+		<div class="{{ containerWidth }}">
+			{% if headingAndContent %}
+				{% include "_components/header-content-block" %}
+			{% endif %}
+
+			{% if displayMode == 'listView' %}
+				<div class="logo-row">
+					{% for item in imageTitleLink %}{{ logos.logo(item, showTitle) }}{% endfor %}
+				</div>
+			{% elseif displayMode == 'gridView' %}
+				<div class="logo-grid grid grid-cols-2 sm:grid-cols-3 {{ gridCols }}">
+					{% for item in imageTitleLink %}{{ logos.logo(item, showTitle) }}{% endfor %}
+				</div>
+			{% else %}
+				<div class="swiper logo-slider" data-swiper-options='{"slidesPerView": 2,"spaceBetween": 16,"loop": true,"autoplay": {"delay": 2600, "disableOnInteraction": false},"breakpoints": {"640": {"slidesPerView": {{ min(maxSlides, 3) }}, "spaceBetween": 24},"1024": {"slidesPerView": {{ min(maxSlides, 4) }}, "spaceBetween": 32},"1280": {"slidesPerView": {{ maxSlides }}, "spaceBetween": 32}}}'>
+					<div class="swiper-wrapper">
+						{% for item in imageTitleLink %}
+							<div class="swiper-slide h-auto">{{ logos.logo(item, showTitle) }}</div>
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+		</div>
+	</section>
+{% endif %}

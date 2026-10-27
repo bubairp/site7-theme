@@ -1,0 +1,54 @@
+{#
+	Newsletter section (DESIGN.md §7), shared by the footer band (_includes/footer/newsletter)
+	and the Newsletter block (_blocks/newsletter). Styled with Tailwind utilities; dark: follows
+	data-theme="dark" on the section.
+
+	Params:
+	  nl       { eyebrow, heading, headingTag, description, formId, disclaimer, layout: 'centered'|'split' }
+	  uid      unique suffix for the element ids (a page can show more than one)
+	  theme    'dark' (default) or 'light'
+	  inkBand  true (default): no background was chosen, so it is the Ink band
+	  sectionClass, sectionStyle, containerClass   optional, from the block's Block Style
+	  media    optional Background Video asset (video file, embedded video or image), behind the text
+	  hasImage true when the background has a photo, so the text gets a readable wash too
+#}
+{% set layout = nl.layout ?? 'centered' %}
+{% set isSplit = layout == 'split' %}
+{% set theme = theme ?? 'dark' %}
+{% set uid = uid ?? 'footer' %}
+{% set headingTag = nl.headingTag ?? 'h2' %}
+{% set media = media ?? null %}
+{% set hasWash = media or (hasImage ?? false) %}
+
+<section class="newsletter-section block-section is-{{ layout }} relative isolate overflow-hidden {{ (inkBand ?? true) ? 'bg-surface-dark' : '' }} {{ sectionClass ?? '' }}" data-theme="{{ theme }}"{% if sectionStyle ?? null %} style="{{ sectionStyle }}"{% endif %}>
+	{% if media %}
+		{% include '_includes/hero-banner/_media' with { m: media, width: 1920, class: 'newsletter-media' } only %}
+	{% endif %}
+	{% if hasWash %}
+		<div class="absolute inset-0 z-[1] pointer-events-none bg-surface/85 dark:bg-transparent dark:bg-linear-to-b dark:from-surface-dark/60 dark:to-surface-dark/80" aria-hidden="true"></div>
+	{% endif %}
+
+	<div class="relative z-[2] {{ containerClass ?? 'container mx-auto px-4' }}">
+		<div class="flex flex-col gap-8 {{ isSplit ? 'lg:grid lg:grid-cols-2 lg:items-center lg:gap-16' : 'max-w-[46rem] mx-auto items-center text-center' }}">
+			<div>
+				{% if (nl.eyebrow ?? '')|length %}
+					<span class="section-eyebrow">{{ nl.eyebrow }}</span>
+				{% endif %}
+				{% if (nl.heading ?? '')|length %}
+					<{{ headingTag }} class="m-0 font-heading text-[clamp(2rem,1.4rem+2vw,2.8125rem)] font-[var(--heading-weight)] leading-[1.1] text-balance text-strong dark:text-on-dark">{{ nl.heading|raw }}</{{ headingTag }}>
+				{% endif %}
+				{% if (nl.description ?? '')|length %}
+					<div class="tw-rich-text mt-4 text-lg font-light leading-[1.55] text-pretty text-body dark:text-on-dark/80 [&>:last-child]:mb-0">{{ nl.description|raw }}</div>
+				{% endif %}
+			</div>
+
+			<div class="{{ isSplit ? '' : 'w-full max-w-[34rem]' }}">
+				{% include '_components/newsletter-form' with { formId: nl.formId ?? null, uid: uid, variant: 'pill' } only %}
+
+				{% if (nl.disclaimer ?? '')|length %}
+					<p class="mt-3.5 mb-0 text-sm leading-normal text-muted dark:text-on-dark/65">{{ nl.disclaimer }}</p>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</section>

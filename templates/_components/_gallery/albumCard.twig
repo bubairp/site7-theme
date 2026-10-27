@@ -1,0 +1,39 @@
+{% import '_macros/images' as images %}
+{# Gallery album card (Image Gallery block, "Choose entry" + album display mode).
+   The whole card opens the album in the lightbox: it is the first .gallery-item, and the
+   album's other photos follow as hidden items. The cover is the entry's Category Thumb,
+   or its first photo when no thumb is set.
+   Params: album (gallery entry), itemClass (extra classes on the wrapper, e.g. swiper-slide),
+   variant: 'card' (grid/slider: image above text) or 'feature' (thumbs view main slide:
+   wide cover with the text over an Ink gradient). #}
+{% set albumImages = album.images.all() %}
+{% set cover = album.categoryThumb.one() ?? albumImages|first %}
+{% set variant = variant ?? 'card' %}
+
+{% if albumImages|length %}
+	<div class="gallery album-card-wrap {{ itemClass ?? '' }}">
+		<a class="gallery-item {{ variant == 'feature' ? 'album-feature' : 'work-card album-card' }} group" href="{{ albumImages[0].url }}"
+		   aria-label="{{ 'Open the {title} gallery, {count} photos'|t('site', { title: album.title, count: albumImages|length }) }}">
+			{% if variant == 'feature' %}
+				{{ images.singleImg(cover, 1600, {'ratio': 1.778}, 'album-feature-img', { alt: '' }) }}
+				<span class="album-feature-body">
+					<span class="album-feature-eyebrow">{{ '{count} photos'|t('site', { count: albumImages|length }) }}</span>
+					<span class="album-feature-title">{{ album.title }}</span>
+					<span class="album-feature-link" aria-hidden="true">{{ 'View gallery'|t }}<i class="ti ti-arrow-right"></i></span>
+				</span>
+			{% else %}
+				<span class="work-card-media">
+					{{ images.singleImg(cover, 640, {'ratio': 1.333}, 'w-full h-full object-cover', { alt: '' }) }}
+				</span>
+				<span class="work-card-body">
+					<span class="work-card-eyebrow">{{ '{count} photos'|t('site', { count: albumImages|length }) }}</span>
+					<span class="work-card-title album-card-title">{{ album.title }}</span>
+					<span class="work-card-link" aria-hidden="true">{{ 'View gallery'|t }}<i class="ti ti-arrow-right"></i></span>
+				</span>
+			{% endif %}
+		</a>
+		{% for image in albumImages|slice(1) %}
+			<a class="gallery-item hidden" href="{{ image.url }}" tabindex="-1" aria-hidden="true"></a>
+		{% endfor %}
+	</div>
+{% endif %}

@@ -1,0 +1,87 @@
+{% import "_macros/images" as images %}
+{% from '_macros/block-style' import bsClasses, bsStyle, bsResponsive, bsContainer %}
+
+{% set headingAndContent = block.headingAndContent.one() %}
+{% set awardContentGroup = block.awardContentGroup.all() ?? [] %}
+{% set blockStyle = block.blockStyle ?? [] %}
+{% set blockType = block.type.handle ?? '' %}
+{% set blockTypeUid = block.uid ?? '' %}
+
+{# One award: image (photo or SVG mark), year/issuer eyebrow, serif title, note, link. #}
+{% macro award(item, variant) %}
+	{% import "_macros/images" as images %}
+	{% set image = item.image.one() ?? null %}
+	{% set link = item.linkUrl ?? null %}
+	<article class="award-card award-card--{{ variant }} group relative">
+		{% if image and variant != 'row' %}
+			<div class="award-card-media {{ image.extension == 'svg' ? 'is-mark' : '' }}">
+				{% if image.extension == 'svg' %}
+					{{ images.singleImg(image, 240, {}, 'award-mark', { alt: item.title }) }}
+				{% else %}
+					{{ images.singleImg(image, 640, {'ratio': 1.6}, 'w-full h-full object-cover', { alt: item.title }) }}
+				{% endif %}
+			</div>
+		{% endif %}
+		<div class="award-card-body">
+			{% if item.plainText|length %}<span class="award-card-eyebrow">{{ item.plainText }}</span>{% endif %}
+			<h3 class="award-card-title">{{ item.title }}</h3>
+			{% if item.shortDescription|length %}<p class="award-card-text">{{ item.shortDescription }}</p>{% endif %}
+			{% if link %}
+				<a href="{{ link.url ?? link }}" class="award-card-link after:absolute after:inset-0">{{ link.label ?? false ?: 'View details'|t }}<i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+			{% endif %}
+		</div>
+	</article>
+{% endmacro %}
+{% import _self as awards %}
+
+{% if awardContentGroup|length %}
+	{% set scopedSel = '.' ~ blockType ~ blockTypeUid ~ '-style' %}
+	{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
+	{% set themeSwitche = null %}
+	{% set blockStyleData = blockStyle|length ? blockStyle.one() : null %}
+	{% if blockStyleData and blockStyleData.background is defined %}
+		{% set themeSwitche = blockStyleData.background.one().themeDark ?? null %}
+	{% endif %}
+
+	{% set displayMode = block.displayMode.value ?? 'sliderView' %}
+	{% set displayMode = {'Slider View': 'sliderView', 'List View': 'listView', 'Grid View': 'gridView'}[displayMode] ?? displayMode %}
+	{% set columnPerRow = block.columnPerRow.value ?? 'md-4' %}
+	{% set perView = {'md-6': 2, 'md-4': 3, 'md-3': 4, 'md-2': 6}[columnPerRow] ?? 3 %}
+	{% set gridCols = {
+		'md-6': 'sm:grid-cols-2',
+		'md-4': 'sm:grid-cols-2 lg:grid-cols-3',
+		'md-3': 'sm:grid-cols-2 lg:grid-cols-4',
+		'md-2': 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
+	}[columnPerRow] ?? 'sm:grid-cols-2 lg:grid-cols-3' %}
+
+	{{ bsResponsive(blockStyle, scopedSel) }}
+	<section class="block-section awards-section awards-{{ displayMode }} {{ blockType }}{{ blockTypeUid }}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
+		<div class="{{ containerWidth }}">
+			{% if headingAndContent %}
+				{% include "_components/header-content-block" %}
+			{% endif %}
+
+			{% if displayMode == 'listView' %}
+				<div class="award-list">
+					{% for item in awardContentGroup %}{{ awards.award(item, 'row') }}{% endfor %}
+				</div>
+			{% elseif displayMode == 'gridView' %}
+				<div class="grid grid-cols-1 gap-6 lg:gap-8 {{ gridCols }}">
+					{% for item in awardContentGroup %}{{ awards.award(item, 'card') }}{% endfor %}
+				</div>
+			{% else %}
+				<div class="swiper" data-swiper-options='{"slidesPerView": 1,"spaceBetween": 24,"loop": true,"navigation": {"prevEl": "#awards-prev-{{ blockTypeUid }}","nextEl": "#awards-next-{{ blockTypeUid }}"},"breakpoints": {"576": { "slidesPerView": {{ min(perView, 2) }} },"992": { "slidesPerView": {{ min(perView, 3) }} },"1200": { "slidesPerView": {{ perView }} }}}'>
+					<div class="swiper-wrapper">
+						{% for item in awardContentGroup %}
+							<div class="swiper-slide h-auto">{{ awards.award(item, 'card') }}</div>
+						{% endfor %}
+					</div>
+				</div>
+				<div class="slider-nav">
+					<button class="slider-nav-btn" type="button" id="awards-prev-{{ blockTypeUid }}" aria-label="{{ 'Previous'|t }}"><i class="ti ti-arrow-left"></i></button>
+					<button class="slider-nav-btn" type="button" id="awards-next-{{ blockTypeUid }}" aria-label="{{ 'Next'|t }}"><i class="ti ti-arrow-right"></i></button>
+				</div>
+			{% endif %}
+		</div>
+	</section>
+{% endif %}

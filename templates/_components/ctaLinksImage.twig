@@ -1,0 +1,5 @@
+{% import "_macros/images" as images %}
+{% set appLinks = appLinksEntry.all() %}
+{% for link in appLinks %}
+	<a class="app-badge" href="{{ link.linkUrl }}">{{ images.singleImg(link.image.0, 90, {ratio: 3.6}) }}</a>
+{% endfor %}

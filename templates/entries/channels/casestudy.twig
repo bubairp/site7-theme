@@ -1,0 +1,58 @@
+{% extends "_layouts/entry" %}
+
+{% set casestudy = craft.entries()
+    .section('casestudies')
+    .slug(craft.app.request.segment(2))
+    .one() %}
+
+{% block structured_data %}
+	{% if casestudy %}
+		{% set feature = casestudy.featureImage|length ? casestudy.featureImage.one() : null %}
+		{% set logo    = generalEntry.logo|length ? generalEntry.logo.one() : null %}
+
+		{% set data = {
+		"@context": "https://schema.org",
+		"@type": "Article",
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": casestudy.url
+		},
+		"headline": casestudy.title,
+		"datePublished": casestudy.postDate|date('c'),
+		"dateModified": (casestudy.dateUpdated is defined and casestudy.dateUpdated ? casestudy.dateUpdated|date('c') : casestudy.postDate|date('c')),
+		"author": {
+			"@type": "Person",
+			"name": (casestudy.projectLead ?? null) and casestudy.projectLead.one() ? casestudy.projectLead.one().title : (generalEntry.companyName ?? 'Admin')
+		},
+		"publisher": {
+			"@type": "Organization",
+			"name": generalEntry.companyName ?? 'Site Name'
+		}
+		} %}
+
+		{% if feature %}
+			{% set data = data|merge({
+			"image": [ feature.url ]
+		}) %}
+		{% endif %}
+
+		{% if logo %}
+			{% set publisher = data.publisher|merge({
+			"logo": {
+			"@type": "ImageObject",
+			"url": logo.url
+			}
+		}) %}
+			{% set data = data|merge({ "publisher": publisher }) %}
+		{% endif %}
+		<script type="application/ld+json">
+			{{ data|json_encode(constant('JSON_UNESCAPED_SLASHES'))|raw }}
+		</script>
+
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+	{# Markup: _layouts/detail/casestudy.twig (a design overrides that file, not this one) #}
+	{% include "_layouts/detail/casestudy" with { element: casestudy } %}
+{% endblock %}

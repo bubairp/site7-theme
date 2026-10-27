@@ -1,0 +1,11 @@
+{
+    "name": "site7/theme",
+    "description": "Site7 base theme: core templates and blocks. Sites override single files in their own templates/.",
+    "type": "library",
+    "license": "proprietary",
+    "extra": {
+        "site7": {
+            "templates": "templates"
+        }
+    }
+}

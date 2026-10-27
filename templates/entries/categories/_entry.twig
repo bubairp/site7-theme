@@ -1,0 +1,123 @@
+{% extends "_layouts/matrix-content" %}
+{% import "_macros/images" as images %}
+
+{% set category = category ?? entry %}
+
+{# Standard page banner: the category's own Banner slides if any, otherwise its title,
+   short description and feature image (split Aged Paper band by default). The shop
+   eyebrow and category pills are added in _includes/page-banner/category-banner. #}
+{% set bannerFallback = {
+	heading: category.title,
+	description: category.shortDescription ?? null,
+	media: category.featureImage.one() ?? null,
+	layout: 'sliderLayout1',
+	crumbs: { element: category, hideSectionLink: true },
+} %}
+
+{% block header_banner %}
+	{% include "_includes/page-banner/category-banner" %}
+{% endblock %}
+
+{% block before_content %}
+	{# The banner shows the breadcrumb, unless it is hidden (Hide Banner) #}
+	{% if bannerHidden %}
+		{% include "_components/breadcrumbs" with { element: category, hideSectionLink: true } %}
+	{% endif %}
+{% endblock %}
+
+{# Without the banner the category title is the page h1 #}
+{% block content_title %}
+	{% if bannerHidden %}
+		<div class="page-title container mx-auto px-4 pt-10 md:pt-12 lg:pt-16">
+			<h1 class="block-heading-title mb-0">{{ category.title }}</h1>
+			{% if category.shortDescription|length %}<p class="page-title-lead">{{ category.shortDescription }}</p>{% endif %}
+		</div>
+	{% endif %}
+{% endblock %}
+
+{% block before_content_matrix %}
+	<div class="category-products">
+		<div class="container mx-auto px-4 py-14 lg:py-20">
+			{# Check for Sub-Categories #}
+			{% set subCategories = category.getChildren().all() %}
+			{% if subCategories|length %}
+				<div class="mb-12">
+					<h2 class="text-2xl font-bold mb-6">{{ 'Subcategories'|t }}
+					</h2>
+					{% set parentIconType = category.iconImageOrClass.value ?? 'iconImage' %}
+					{% set parentIconImage = category.image.one() %}
+					{% set parentIconClass = category.plainText ?? category.iconClass ?? 'ti ti-book' %}
+					{% set parentColorData = category.colorLibrary.one() %}
+					{% set parentColor = (parentColorData.colorcode ?? 'var(--primary)')|roleColor %}
+
+					<div class="swiper" data-swiper-options='{"slidesPerView": 2,"spaceBetween": 16,"pagination": { "el": ".swiper-pagination", "clickable": true },"breakpoints": {"768": { "slidesPerView": 3, "spaceBetween": 24 },"1024": { "slidesPerView": 4, "spaceBetween": 24 },"1280": { "slidesPerView": 6, "spaceBetween": 24 }}}'>
+						<div class="swiper-wrapper pb-4">
+							{% for subCat in subCategories %}
+								{% set iconType = parentIconType %}
+								{% set iconImage = parentIconImage %}
+								{% set iconClass = parentIconClass %}
+								{% set color = parentColor %}
+
+								<div class="swiper-slide h-auto">
+									{% set productCount = craft.entries.section('products').relatedTo(subCat).count() %}
+									<a
+										href="{{ subCat.url }}" class="tw-card h-full text-center p-4 lg:p-6 no-underline card-hover relative overflow-hidden block">
+										{# Subtle mesh background effect #}
+										<div class="absolute top-0 end-0 -mt-6 -me-6 opacity-20" style="width: 120px; height: 120px; border-radius: 50%; background: {{ color }}; filter: blur(15px);"></div>
+
+										<div class="category-icon-wrapper mx-auto mb-4 flex items-center justify-center rounded-xl shadow-sm" style="width: 64px; height: 64px; background: {{ color }}; background: linear-gradient(135deg, {{ color }} 0%, color-mix(in srgb, {{ color }} 80%, white) 100%);">
+											{% if iconType == 'iconImage' and iconImage %}
+												{{ images.singleImg(iconImage, 32, {}, 'max-w-full h-auto') }}
+											{% else %}
+												<i class="{{ iconClass|icon }} text-2xl text-white"></i>
+											{% endif %}
+										</div>
+
+										<h3 class="text-base font-bold mb-1 text-dark ">{{ subCat.title }}</h3>
+										<p class="text-xs tw-text-muted mb-0">{{ '{count, plural, =1{# piece} other{# pieces}}'|t('site', { count: productCount }) }}</p>
+									</a>
+								</div>
+							{% endfor %}
+						</div>
+						<div class="swiper-pagination relative bottom-0 mt-2 pt-4"></div>
+					</div>
+				</div>
+			{% endif %}
+
+			{% set categoriesToRelate = [category]|merge(category.getDescendants().all()) %}
+			{% set products = craft.entries.section('products').relatedTo(categoriesToRelate).limit(24) %}
+			{% paginate products as pageInfo, pageEntries %}
+
+				{% if pageEntries|length %}
+					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="category-product-list">
+						{% for product in pageEntries %}
+							<div>
+								{% include "_components/_products/productCard.twig" with { product: product } %}
+							</div>
+						{% endfor %}
+					</div>
+
+					<div class="mt-12">
+						{% include "_components/pagination" with { pageInfo: pageInfo } %}
+					</div>
+				{% else %}
+					<div class="text-center py-6">
+						<div class="bg-white rounded-full inline-flex items-center justify-center mb-6" style="width: 100px; height: 100px;">
+							<i class="ti ti-shopping-bag text-4xl tw-text-muted"></i>
+						</div>
+						<h2 class="text-xl font-bold tw-text-muted">{{ 'Nothing in this category yet.'|t }}</h2>
+						<p class="mb-6">{{ 'New pieces arrive every few weeks. Have a look at the rest of the shop meanwhile.'|t }}</p>
+						<a href="{{ siteUrl('products') }}" class="tw-btn tw-btn-primary">{{ 'Browse the shop'|t }}</a>
+					</div>
+				{% endif %}
+			</div>
+		</div>
+	{% endblock %}
+
+	{% block content_matrix %}
+		{% set matrixContainer = category.matrixContent ?? null %}
+		{% include "_includes/matrix-container" with {
+		matrixContainer: matrixContainer,
+		cache_key: 'category-' ~ category.id
+	} %}
+	{% endblock %}

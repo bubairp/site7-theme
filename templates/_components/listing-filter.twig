@@ -1,0 +1,68 @@
+{#- Search + category filter of the blog and shop listings (Blogs and Products blocks).
+	Markup only: _components/_blog/searchBlog.twig and _components/_products/searchProduct.twig
+	find the categories and include this. A design restyles both listings by overriding
+	only this file (designs/<handle>/templates/_components/listing-filter.twig).
+
+	Params:
+	  formName          form name and id (blogSearch, productSearch)
+	  placeholder       the search field's placeholder and label
+	  categories        entries with slug, title and level (sub-categories are indented)
+	  selectedCategory  the ?category= value
+	  searchTerm        the ?search= value
+	  currentUrl        the listing page (the form submits back to it)
+	  selectClass       extra classes on the category select (optional)
+	  searchLabelClass  classes on the Search button's label (optional)
+	GET: search, category. -#}
+<div class="blog-filter">
+	<div class="blog-filter-bar">
+		<form name="{{ formName }}" id="{{ formName }}" action="{{ currentUrl }}" method="GET">
+
+			{% set inputClass = 'blog-filter-input' %}
+
+			<div class="grid grid-cols-12 gap-3 items-center">
+				{# Search Input #}
+				<div class="col-span-12 lg:col-span-6">
+					<div class="relative">
+						<i class="ti ti-search blog-filter-icon" aria-hidden="true"></i>
+						<input class="{{ inputClass }} ps-11" type="search" name="search" placeholder="{{ placeholder }}" aria-label="{{ placeholder }}" value="{{ searchTerm }}">
+					</div>
+				</div>
+
+				{# Category Select #}
+				<div class="col-span-12 lg:col-span-3">
+					<select name="category" aria-label="{{ 'Category'|t }}" class="{{ inputClass }}{{ (selectClass ?? '') ? ' ' ~ selectClass }} pe-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3csvg%20xmlns%3d%22http%3a%2f%2fwww.w3.org%2f2000%2fsvg%22%20viewBox%3d%220%200%2016%2016%22%3e%3cpath%20fill%3d%22none%22%20stroke%3d%22%23343a40%22%20stroke-linecap%3d%22round%22%20stroke-linejoin%3d%22round%22%20stroke-width%3d%222%22%20d%3d%22m2%205%206%206%206-6%22%2f%3e%3c%2fsvg%3e')] bg-no-repeat bg-[position:right_1rem_center] bg-[size:16px_12px]" onchange="this.form.submit()">
+						<option value="">{{ 'All categories'|t }}</option>
+						{% if categories | length %}
+							{% for category in categories %}
+								{% set indent = "" %}
+								{% if category.level > 1 %}
+									{% for i in 1..(category.level - 1) %}
+										{% set indent = indent ~ "&nbsp;&nbsp;&nbsp;" %}
+									{% endfor %}
+									{% set indent = indent ~ "— " %}
+								{% endif %}
+								<option value="{{ category.slug }}" {{ selectedCategory and selectedCategory == category.slug ? 'selected' : '' }}>{{ indent | raw }}{{ category.title | raw }}</option>
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+
+				{# Search Button #}
+				<div class="col-span-6 lg:col-span-2">
+					<button type="submit" class="tw-btn tw-btn-primary w-full blog-filter-btn" aria-label="{{ 'Search'|t }}">
+						<i class="ti ti-search text-lg"></i>
+						<span{% if searchLabelClass ?? '' %} class="{{ searchLabelClass }}"{% endif %}>{{ 'Search'|t }}</span>
+					</button>
+				</div>
+
+				{# Reset Button #}
+				<div class="col-span-6 lg:col-span-1">
+					<a href="{{ currentUrl }}" class="tw-btn tw-btn-secondary w-full blog-filter-btn" aria-label="{{ 'Reset'|t }}" title="{{ 'Reset'|t }}">
+						<i class="ti ti-restore text-lg"></i>
+						<span class="inline lg:hidden">{{ 'Reset'|t }}</span>
+					</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

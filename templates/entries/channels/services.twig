@@ -1,0 +1,73 @@
+{% extends "_layouts/matrix-content" %}
+{% set service = craft.entries()
+  .section('services')
+  .slug(craft.app.request.segment(2))
+  .one() %}
+
+{# Standard page banner (_layouts/matrix-content): the service's own Banner slides if it
+   has any, otherwise built from its title, short description and feature image #}
+{% set bannerFallback = service ? {
+	heading: service.title,
+	description: service.shortDescription ?? null,
+	media: service.featureImage.one() ?? null,
+	layout: 'sliderLayout3',
+} : null %}
+
+{% block structured_data %}
+	{% if service %}
+		{% set feature = service.featureImage|length ? service.featureImage.one() : null %}
+		{% set logo    = generalEntry.logo|length ? generalEntry.logo.one() : null %}
+
+		{% set data = {
+		"@context": "https://schema.org",
+		"@type": "Article",
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": service.url
+		},
+		"name": service.title,
+		} %}
+
+		{% if feature %}
+			{% set data = data|merge({
+			"image": [ feature.url ]
+		}) %}
+		{% endif %}
+
+		{% if logo %}
+			{% set data = data|merge({
+			"publisher": {
+				"@type": "Organization",
+				"name": generalEntry.companyName ?? 'Site Name',
+				"logo": {
+					"@type": "ImageObject",
+					"url": logo.url
+				}
+			}
+		}) %}
+		{% endif %}
+		<script type="application/ld+json">
+			{{ data|json_encode(constant('JSON_UNESCAPED_SLASHES'))|raw }}
+		</script>
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+
+	{% set wrapperClass = 'bg-primary' %}
+{% import "_macros/images" as images %}
+	{% set blockTypeUid = '' %}
+	{% set blockCssClasses = '' %}
+
+	{% if service %}
+
+		{# Title, breadcrumb and image are in the page banner above. With the banner hidden
+		   (Hide Banner) the shared H1 title (_layouts/matrix-content) takes its place. #}
+		{% if bannerHidden ?? false %}{{ block('content_title') }}{% endif %}
+		{% include "_includes/matrix-container" with {
+      entry: service,
+      cache_key: 'entry-' ~ service.id
+    } 
+  %}
+	{% endif %}
+{% endblock %}

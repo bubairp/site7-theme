@@ -1,0 +1,72 @@
+{% import "_macros/utils" as utils %}
+{# Contact details card: address, email, phone, office hours and social links, one row
+   each with an icon. Used by the Contact page and the Contact block (layout 2).
+   Params: address, email, phone (strings or null), timing (table rows), socialMedia
+   (entries); optional asideClass (grid placement), boxClass, titleClass, textClass
+   (the Contact block's CMS colour and radius hooks). #}
+<aside class="{{ asideClass ?? 'lg:col-span-5 lg:sticky lg:top-28' }}" aria-label="{{ 'Contact details'|t }}">
+	<div class="tw-card contact-details-card p-6 md:p-8 {{ boxClass ?? '' }}">
+		<h2 class="text-xl font-bold mb-5 {{ titleClass ?? '' }}">{{ 'Contact details'|t }}</h2>
+
+		<ul class="list-none p-0 m-0 divide-y divide-slate-100 dark:divide-slate-800">
+			{% if address %}
+				<li class="flex gap-4 py-4 first:pt-0">
+					<span class="w-11 h-11 shrink-0 rounded-full flex items-center justify-center bg-primary/10 text-accent"><i class="ti ti-map-pin text-xl" aria-hidden="true"></i></span>
+					<div class="min-w-0">
+						<div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{{ 'Address'|t }}</div>
+						<div class="text-[15px] leading-relaxed text-slate-800 dark:text-slate-200 [&_p]:mb-0 {{ textClass ?? '' }}">{{ address|raw }}</div>
+					</div>
+				</li>
+			{% endif %}
+
+			{% if email %}
+				<li class="flex gap-4 py-4 first:pt-0">
+					<span class="w-11 h-11 shrink-0 rounded-full flex items-center justify-center bg-primary/10 text-accent"><i class="ti ti-mail text-xl" aria-hidden="true"></i></span>
+					<div class="min-w-0">
+						<div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{{ 'Email'|t }}</div>
+						<a href="mailto:{{ email }}" class="text-[15px] font-medium text-slate-800 dark:text-slate-200 hover:text-accent no-underline break-all {{ textClass ?? '' }}">{{ email }}</a>
+					</div>
+				</li>
+			{% endif %}
+
+			{% if phone %}
+				<li class="flex gap-4 py-4 first:pt-0">
+					<span class="w-11 h-11 shrink-0 rounded-full flex items-center justify-center bg-primary/10 text-accent"><i class="ti ti-phone text-xl" aria-hidden="true"></i></span>
+					<div class="min-w-0">
+						<div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{{ 'Phone'|t }}</div>
+						<a href="tel:{{ phone|replace({' ': ''}) }}" class="text-[15px] font-medium text-slate-800 dark:text-slate-200 hover:text-accent no-underline {{ textClass ?? '' }}">{{ phone }}</a>
+					</div>
+				</li>
+			{% endif %}
+
+			{% if timing|length %}
+				<li class="flex gap-4 py-4 first:pt-0">
+					<span class="w-11 h-11 shrink-0 rounded-full flex items-center justify-center bg-primary/10 text-accent"><i class="ti ti-clock text-xl" aria-hidden="true"></i></span>
+					<div class="min-w-0 flex-1">
+						<div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{{ 'Office hours'|t }}</div>
+						<dl class="{{ textClass ?? '' }} m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[15px]">
+							{% for row in timing %}
+								{# Day values may already end with ':' in the CMS #}
+								<dt class="text-slate-600 dark:text-slate-400 font-normal">{{ row.day|trim|trim(':', 'right') }}</dt>
+								<dd class="m-0 text-slate-800 dark:text-slate-200 font-medium">{{ row.startTime|date('h:i A') }} – {{ row.endTime|date('h:i A') }}</dd>
+							{% endfor %}
+						</dl>
+					</div>
+				</li>
+			{% endif %}
+		</ul>
+
+		{% if socialMedia|length %}
+			<div class="mt-2 pt-5 border-t border-slate-100 dark:border-slate-800">
+				<div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{{ 'Follow us'|t }}</div>
+				<div class="flex flex-wrap gap-2">
+					{% for social in socialMedia %}
+						<a href="{{ utils.externalUrl(social.linkUrl) }}" {{ utils.newTabAttrs(social.linkUrl, 'noopener') }} aria-label="{{ social.title }}" title="{{ social.title }}" class="w-11 h-11 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 no-underline transition-colors hover:bg-primary hover:border-primary hover:text-white">
+							<i class="{{ ('ti ti-brand-' ~ social.title|lower)|icon }} text-xl" aria-hidden="true"></i>
+						</a>
+					{% endfor %}
+				</div>
+			</div>
+		{% endif %}
+	</div>
+</aside>

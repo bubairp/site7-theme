@@ -1,0 +1,90 @@
+{# Person profile, shared by team member and author pages: portrait, name (h2; the page
+   h1 is in the banner), role | focus, phone/email chips, bio, extra HTML and Connect icons.
+   Expects: person (entry), photo (asset or null), role, focus, phone, email, bio (HTML),
+   extra (HTML, optional), pageStyle (optional). Empty values are skipped.
+   The name is the page h1 when the banner is hidden (Hide Banner). #}
+{% import "_macros/images" as images %}
+{% import "_macros/utils" as utils %}
+{% set role = role ?? null %}{% set focus = focus ?? null %}{% set phone = phone ?? null %}{% set email = email ?? null %}
+{% set bio = bio ?? null %}{% set extra = extra ?? null %}{% set pageStyle = pageStyle ?? null %}
+<div class="py-10 md:py-12 lg:py-16 standard-txt overflow-hidden">
+	<div class="{{ ((pageStyle.SingleMatrixContainerWidth.value ?? null) ?: 'container')|replace({'container-small': 'max-w-4xl mx-auto px-4', 'container': 'container mx-auto px-4'}) }}">
+		<div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 lg:gap-16 items-start">
+			<div class="md:col-span-4 lg:col-span-4">
+				<div class="sticky top-24">
+					<div class="relative rounded-2xl md:rounded-3xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 aspect-[4/5]">
+						{% if photo %}
+							{{ images.singleImg(photo, 800, {'ratio': 0.8}, 'w-full h-full object-cover transition-transform duration-700 hover:scale-105', { alt: person.title }) }}
+						{% else %}
+							<div class="w-full h-full flex items-center justify-center text-gray-400">
+								<i class="ti ti-user text-6xl"></i>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+			<div class="md:col-span-8 lg:col-span-8 flex flex-col justify-center">
+				{# h2 under the banner (its title is the h1); h1 when the banner is hidden #}
+				{% set nameTag = (bannerHidden ?? false) ? 'h1' : 'h2' %}
+				<{{ nameTag }} class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-2">{{ person.title }}</{{ nameTag }}>
+
+				{% if role|length or focus|length %}
+					<p class="text-lg md:text-xl font-medium text-accent mb-8 flex flex-wrap items-center gap-2">
+						{% if role|length %}
+							<span>{{ role }}</span>
+						{% endif %}
+						{% if role|length and focus|length %}
+							<span class="text-gray-300 dark:text-gray-600 text-sm hidden sm:inline-block">|</span>
+						{% endif %}
+						{% if focus|length %}
+							<span class="text-gray-600 dark:text-gray-400">{{ focus }}</span>
+						{% endif %}
+					</p>
+				{% endif %}
+
+				{% if phone|length or email|length %}
+					<div class="flex flex-col sm:flex-row gap-3 mb-10">
+						{% if phone|length %}
+							<a href="tel:{{ phone }}" class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-accent transition-colors bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-800">
+								<i class="ti ti-phone text-accent"></i>
+								<span class="font-medium">{{ phone }}</span>
+							</a>
+						{% endif %}
+						{% if email|length %}
+							<a href="mailto:{{ email }}" class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-accent transition-colors bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-lg border border-gray-100 dark:border-gray-800">
+								<i class="ti ti-mail text-accent"></i>
+								<span class="font-medium">{{ email }}</span>
+							</a>
+						{% endif %}
+					</div>
+				{% endif %}
+
+				{% if bio|length %}
+					<div class="tw-rich-text text-gray-600 dark:text-gray-400 mb-10">
+						{{ bio|raw }}
+					</div>
+				{% endif %}
+
+				{% if extra|length %}{{ extra|raw }}{% endif %}
+
+				{% set socialMedia = (person.socialMedia ?? null) ? person.socialMedia.all() : [] %}
+				{% if socialMedia|length %}
+					<div class="flex flex-wrap items-center gap-3 pt-8 border-t border-gray-100 dark:border-gray-800">
+						<span class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mr-2">Connect:</span>
+						{% for social in socialMedia %}
+							{% set platformName = utils.linkPlatform(social.linkUrl) %}
+							<a href="{{ social.linkUrl }}" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 {{ social.elementClass }}" aria-label="{{ platformName }} profile for {{ person.title }}" {{ utils.newTabAttrs(social.linkUrl) }}>
+								{% if social.iconClass|length %}
+									<i class="{{ social.iconClass|icon }} text-lg"></i>
+								{% elseif social.iconImage|length %}
+									{{ images.singleImg(social.iconImage.one(), 32, {}, 'w-5 h-5 object-contain') }}
+								{% endif %}
+							</a>
+						{% endfor %}
+					</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+

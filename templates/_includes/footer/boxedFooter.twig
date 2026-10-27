@@ -1,0 +1,166 @@
+{% import "_macros/images" as images %}
+{% import '_macros/utils' as utils %}
+{% import '_components/ctaButton' as buttons %}
+{#
+	Boxed footer, modelled on functionhealth.com: a Parchment card with a soft float shadow on an
+	Aged Paper band. Logo, then the menu columns beside the newsletter (Footer > Newsletter tab,
+	shown here instead of the band above the footer), then app badges and cards on the left and
+	social icons and the small links on the right. Copyright sits under the card.
+	nlInFooter comes from _layouts/entry.twig (Show Newsletter on, not hidden on this page).
+#}
+{% set siteFooterLogo = generalEntry.footerLogo.one() ?? generalEntry.logo.one() ?? null %}
+{% set showNewsletter = nlInFooter ?? false %}
+{% set nlHc = showNewsletter ? (footerEntry.headingAndContent.one() ?? null) : null %}
+{% set hasTiming = footerDisplayOfficeTiming and officeTiming and officeTiming|length > 0 %}
+{% set cardImg = generalEntry.acceptedCards.one() ?? null %}
+{% set hasApps = footerDisplayDownloadApp and (appLinksEntry ?? null) and appLinksEntry|length %}
+{% set titleClass = 'mb-4 font-sans! text-sm! font-semibold! leading-normal text-strong dark:text-on-dark' %}
+{% set linkClass = 'inline-block py-1 text-base text-body dark:text-on-dark/80 no-underline transition-colors duration-200 hover:text-strong dark:hover:text-on-dark' %}
+
+{# Footer > Style > Outer Background: the band around the card. Empty: Aged Paper. No data-theme on
+   the band (dark: would reach into a light card), so only the copyright line switches colour. #}
+{% set outerBg = footerEntry.footerOuterBackground.one() ?? null %}
+{% set outerColor = outerBg ? (outerBg.colorLibrary.one().colorcode ?? null)|roleColor : null %}
+{% set outerImage = outerBg ? outerBg.image.one() : null %}
+{% set outerDark = outerBg and outerBg.themeDark %}
+{% set outerStyle = (outerColor ? 'background-color: ' ~ outerColor ~ ';' : '')
+	~ (outerImage ? 'background-image: url(\'' ~ images.bgImageUrl(outerImage)|trim ~ '\'); background-size: cover; background-position: center;' : '') %}
+
+<div class="{{ outerColor or outerImage ? '' : 'bg-surface-alt' }} pt-12 pb-8 md:pt-16 md:pb-10"{% if outerStyle %} style="{{ outerStyle }}"{% endif %}>
+	<div class="{{ footerContainerWidth }}">
+		<div class="footer-main footer-boxed {{ footerClasses }} relative bg-surface! border-t-0! rounded-[var(--radius-card)] md:rounded-[28px] shadow-[0_32px_80px_-12px_rgba(42,43,47,0.14)] px-6 py-10 sm:px-10 md:px-12 lg:px-14 lg:py-14 text-strong dark:bg-surface-dark! dark:text-on-dark" {% if themeSwitche %}data-theme="dark"{% endif %}>
+
+			{# Logo and the short description #}
+			<div class="mb-10 lg:mb-14">
+				{% if footerDisplayLogo and siteFooterLogo %}
+					<a class="inline-block no-underline" href="/" style="text-decoration: none !important;">
+						{% include '_includes/footer/_logo' with { sizeClass: 'h-9 md:h-10' } %}
+					</a>
+				{% endif %}
+				{% if footerEntry.description %}
+					<p class="mt-4 mb-0 max-w-md text-sm! leading-relaxed text-muted dark:text-on-dark/70">{{ footerEntry.description }}</p>
+				{% endif %}
+				{% if footerDisplayCTA and footerButton %}
+					<div class="mt-6">{{ buttons.renderButton(footerButton, {}, 'tw-btn-sm text-sm') }}</div>
+				{% endif %}
+			</div>
+
+			<div class="grid grid-cols-1 gap-12 xl:grid-cols-12 xl:gap-10">
+				{# Menu columns (Footer > Menu Col 1-3; Col 3 only when picked) and Contact (Show Contact Info or
+				   Show Office Timing). The grid has as many columns as are shown, so the menus spread out when
+				   Contact is off. Phones: two per row. Four columns: Contact on its own row until 1024px, then a
+				   slightly wider column. #}
+				{% set hasCol3 = footerEntry.footerMenuCol3|length > 0 %}
+				{% set hasContact = footerDisplayContactInfo or hasTiming %}
+				{% set colCount = 2 + (hasCol3 ? 1 : 0) + (hasContact ? 1 : 0) %}
+				{% set gridCols = {
+					2: 'grid-cols-2',
+					3: 'grid-cols-2 sm:grid-cols-3',
+					4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_1.35fr]',
+				}[colCount] %}
+				<div class="grid {{ gridCols }} gap-x-6 gap-y-10 {{ showNewsletter ? 'xl:col-span-7' : 'xl:col-span-12' }}">
+					{% set col1MenuHandle = footerEntry.footerMenuCol1 ?: 'company' %}
+					{% set col1MenuObj = craft.simplerpmenu.getMenu(col1MenuHandle) %}
+					<nav aria-label="{{ col1MenuObj ? col1MenuObj.name|t : 'Page links'|t }}">
+						<h2 class="{{ titleClass }}">{{ col1MenuObj ? col1MenuObj.name|t : 'Page links'|t }}</h2>
+						{{ craft.simplerpmenu.getRpMenuHTML(col1MenuHandle, { 'menu-id': 'footerMenuCol1', 'menu-class': '', 'ul-class': 'flex flex-col gap-1 p-0 m-0', 'li-class': 'list-none', 'link-class': linkClass }) }}
+					</nav>
+
+					{% set col2MenuHandle = footerEntry.footerMenuCol2 ?: 'support' %}
+					{% set col2MenuObj = craft.simplerpmenu.getMenu(col2MenuHandle) %}
+					<nav aria-label="{{ col2MenuObj ? col2MenuObj.name|t : 'Useful links'|t }}">
+						<h2 class="{{ titleClass }}">{{ col2MenuObj ? col2MenuObj.name|t : 'Useful links'|t }}</h2>
+						{{ craft.simplerpmenu.getRpMenuHTML(col2MenuHandle, { 'menu-id': 'footerMenuCol2', 'menu-class': '', 'ul-class': 'flex flex-col gap-1 p-0 m-0', 'li-class': 'list-none', 'link-class': linkClass }) }}
+					</nav>
+					{% if hasCol3 %}
+						{% set col3MenuHandle = footerEntry.footerMenuCol3 %}
+						{% set col3MenuObj = craft.simplerpmenu.getMenu(col3MenuHandle) %}
+						<nav aria-label="{{ col3MenuObj ? col3MenuObj.name|t : 'More links'|t }}">
+							<h2 class="{{ titleClass }}">{{ col3MenuObj ? col3MenuObj.name|t : 'More links'|t }}</h2>
+							{{ craft.simplerpmenu.getRpMenuHTML(col3MenuHandle, { 'menu-id': 'footerMenuCol3', 'menu-class': '', 'ul-class': 'flex flex-col gap-1 p-0 m-0', 'li-class': 'list-none', 'link-class': linkClass }) }}
+						</nav>
+					{% endif %}
+
+					{% if hasContact %}
+						<div class="col-span-2 {{ colCount == 4 ? 'sm:col-span-3 lg:col-span-1' : 'sm:col-span-1' }}">
+							<h2 class="{{ titleClass }}">{{ 'Contact'|t }}</h2>
+							{% if footerDisplayContactInfo %}
+								<ul class="flex flex-col gap-1 p-0 m-0">
+									{% if generalEntry.Description %}
+										<li class="list-none mb-2 text-sm leading-relaxed text-muted dark:text-on-dark/70 [&_p]:m-0">{{ generalEntry.Description }}</li>
+									{% endif %}
+									{% if generalEntry.email %}
+										<li class="list-none"><a class="{{ linkClass }} max-w-full [overflow-wrap:anywhere]" href="mailto:{{ generalEntry.email }}">{{ generalEntry.email }}</a></li>
+									{% endif %}
+									{% if generalEntry.phoneNumber %}
+										<li class="list-none"><a class="{{ linkClass }}" href="tel:{{ generalEntry.phoneNumber|replace({' ': ''}) }}">{{ generalEntry.phoneNumber }}</a></li>
+									{% endif %}
+								</ul>
+							{% endif %}
+							{% if hasTiming %}
+								<ul class="mt-5 flex flex-col gap-1 p-0 m-0 max-w-xs text-sm">
+									{% for officeTime in officeTiming %}
+										<li class="list-none flex justify-between gap-4 whitespace-nowrap text-muted dark:text-on-dark/70">
+											<span class="font-medium text-strong dark:text-on-dark">{{ officeTime.day }}</span>
+											<span>{{ utils.formatTime24Hour(officeTime.startTime) }} – {{ utils.formatTime24Hour(officeTime.endTime) }}</span>
+										</li>
+									{% endfor %}
+								</ul>
+							{% endif %}
+						</div>
+					{% endif %}
+				</div>
+
+				{# Newsletter (Footer > Newsletter): serif heading, an <em> word in terracotta italic #}
+				{% if showNewsletter %}
+					<div class="max-w-xl xl:max-w-none xl:col-span-5 xl:pl-6">
+						{% if nlHc and nlHc.heading|length %}
+							<h2 class="m-0 font-heading! text-[1.625rem]! md:text-[1.75rem]! font-[var(--heading-weight)]! leading-[1.2] text-balance text-strong dark:text-on-dark [&_em]:text-accent [&_em]:font-light">{{ nlHc.heading|raw }}</h2>
+						{% endif %}
+						{% if nlHc and nlHc.Description|length %}
+							<div class="mt-3 text-sm leading-relaxed text-body dark:text-on-dark/80 [&_p]:m-0">{{ nlHc.Description|raw }}</div>
+						{% endif %}
+						<div class="mt-6 [&_button>span]:font-sans! [&_button>span]:text-base! [&_button>span]:font-semibold!">
+							{% include '_components/newsletter-form' with { formId: footerEntry.selectForm.id ?? null, uid: 'footer', variant: 'outline', align: 'left' } only %}
+						</div>
+						{% if footerEntry.disclaimer|length %}
+							<p class="mt-3 mb-0 text-[13px] leading-normal text-muted dark:text-on-dark/65">{{ footerEntry.disclaimer }}</p>
+						{% endif %}
+					</div>
+				{% endif %}
+			</div>
+
+			{# Bottom row: app badges, cards and the CTA left; social icons and small links right #}
+			<div class="mt-14 xl:mt-20 grid grid-cols-1 gap-8 md:grid-cols-2 md:items-end xl:grid-cols-12 xl:gap-10">
+				<div class="flex flex-wrap items-center gap-x-6 gap-y-4 xl:col-span-7">
+					{% if hasApps %}
+						<div class="flex flex-wrap gap-3 [&_.app-badge]:m-0 dark:[&_.app-badge]:bg-on-dark/10 dark:[&_.app-badge:hover]:bg-primary">
+							{% include '_components/ctaLinksImage' %}
+						</div>
+					{% endif %}
+					{% if cardImg %}
+						{% set imgWidth = cardImg.width ?: 187 %}
+						{% set imgHeight = cardImg.height ?: 28 %}
+						<div class="flex items-center gap-3">
+							<span class="whitespace-nowrap text-sm text-muted dark:text-on-dark/70">{{ 'Cards accepted'|t }}</span>
+							{{ images.singleImg(cardImg, imgWidth, {ratio: (imgWidth / imgHeight)}, 'h-7 w-auto') }}
+						</div>
+					{% endif %}
+				</div>
+				<div class="xl:col-span-5 xl:pl-6">
+					{% if footerDisplaySocial %}
+						<div class="-ms-1 mb-5 flex">
+							{% include '_components/social' with { sizeClass: 'w-9 h-9', iconSize: 16 } %}
+						</div>
+					{% endif %}
+					{{ craft.simplerpmenu.getRpMenuHTML(footerEntry.footerMenu ?: 'footermenu', { 'menu-id': 'footermenu', 'menu-class': '', 'ul-class': 'flex flex-wrap gap-x-5 gap-y-2 p-0 m-0', 'li-class': 'list-none', 'link-class': 'text-xs text-muted dark:text-on-dark/70 no-underline hover:text-strong dark:hover:text-on-dark' }) }}
+				</div>
+			</div>
+		</div>
+
+		<p class="mt-6 mb-0 px-1 text-[13px] font-medium {{ outerDark ? 'text-on-dark/75' : 'text-muted' }}">
+			&copy; {{ now|date('Y') }} {{ generalEntry.companyName ?: siteName }}. {{ 'All rights reserved.'|t }}
+			<span class="font-normal">{{ 'Made by'|t }} <a class="{{ outerDark ? 'text-on-dark' : 'text-strong' }} no-underline hover:text-accent" href="https://remoteprogrammer.com/" target="_blank" rel="noopener">RP</a></span>
+		</p>
+	</div>
+</div>

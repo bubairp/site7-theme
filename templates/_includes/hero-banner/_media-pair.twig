@@ -1,0 +1,11 @@
+{# A slide's media and its optional mobile alternative (Background Image/Video Mobile),
+   each through _media.twig; the mobile one replaces the other below 768px.
+   Expects: slide, width (desktop image width), eager, alt (optional). #}
+{% set media = slide.imageVideo.one() ?? null %}
+{% set mediaMob = slide.bgImageVideoMobile.one() ?? null %}
+{% if media %}
+	{% include "_includes/hero-banner/_media" with { m: media, class: mediaMob ? 'hidden md:block' : '', preloadMedia: mediaMob ? '(min-width: 768px)' : null } %}
+{% endif %}
+{% if mediaMob %}
+	{% include "_includes/hero-banner/_media" with { m: mediaMob, width: 768, class: media ? 'md:hidden' : '', preloadMedia: media ? '(max-width: 767.98px)' : null } %}
+{% endif %}

@@ -1,0 +1,52 @@
+{% import "_macros/utils" as utils %}
+{% import "_macros/images" as images %}
+<div class="team-card group relative flex flex-col h-full {{ (clickAction ?? 'detailPage') == 'none' ? 'is-static' : '' }}">
+	{% if team.image|length %}
+		<div class="team-card-photo">
+			{{ images.singleImg(team.image.0, 600, {'ratio': 1}, 'w-full h-full object-cover', { alt: team.title }) }}
+		</div>
+	{% endif %}
+	<div class="team-card-body">
+		<h3 class="team-card-name">{{ team.title }}</h3>
+		<p class="team-card-role">{{ team.plainTextRole }}</p>
+
+		{# A11Y-02: Social links use z-20 + main card link uses z-10 overlay — tab order is now logical
+		   Social buttons come BEFORE the overlay, so they get focus first (correct UX).
+		   The overlay is aria-hidden so it's skipped by screen readers; title h3 is the readable content. #}
+		<div class="team-card-social relative z-20">
+			{% set socialMedia = team.socialMedia.all() %}
+			{% if socialMedia|length %}
+				{% for social in socialMedia %}
+					{# A11Y-03: Dynamic aria-label based on platform name or URL #}
+					<a href="{{ social.linkUrl }}"
+					   class="social-dot"
+					   aria-label="{{ utils.linkPlatform(social.linkUrl) }} profile for {{ team.title }}"
+					   {{ utils.newTabAttrs(social.linkUrl) }}>
+						{% if social.iconClass|length %}
+							<i class="{{ social.iconClass|icon }}" aria-hidden="true"></i>
+						{% elseif social.iconImage|length %}
+							{{ images.singleImg(social.iconImage.one(), 24, {}, 'w-4 h-4') }}
+						{% endif %}
+					</a>
+				{% endfor %}
+			{% endif %}
+			{% if team.email %}
+				<a href="mailto:{{ team.email }}"
+				   class="social-dot"
+				   aria-label="Email {{ team.title }}">
+					<i class="ti ti-mail" aria-hidden="true"></i>
+				</a>
+			{% endif %}
+		</div>
+	</div>
+	{# Card click (Teams block "Card Click Action"): detail page (default), modal, or nothing.
+	   A11Y-02: the page link is last in DOM + aria-hidden so it doesn't interfere with tab order;
+	   the modal trigger is a real button so keyboard users can open it. #}
+	{% set clickAction = clickAction ?? 'detailPage' %}
+	{% if clickAction == 'modal' and modalId is defined %}
+		<button type="button" class="absolute inset-0 z-10 cursor-pointer rounded-[var(--radius-card)]" aria-haspopup="dialog" aria-controls="{{ modalId }}"
+			aria-label="{{ 'View profile: {name}'|t('site', { name: team.title }) }}" x-data @click="$store.modal.open('{{ modalId }}')"></button>
+	{% elseif clickAction != 'none' and team.url %}
+		<a href="{{ team.url }}" class="absolute inset-0 z-10" aria-hidden="true" tabindex="-1"></a>
+	{% endif %}
+</div>

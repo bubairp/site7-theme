@@ -1,0 +1,123 @@
+{#- Detail layout: portfolio (entries/channels/portfolio.twig).
+	Markup only: a design changes this page's layout by overriding this file
+	(designs/<handle>/templates/_layouts/detail/portfolio.twig). SEO, structured data and
+	the entry lookup stay in entries/channels/portfolio.twig, so their fixes reach every design.
+
+	Variables (layout contract, docs: DESIGN.md "Detail layouts"):
+	  element   the portfolio entry being shown (also as `portfolio`)
+	  entry     the routed entry (Page Style, CP edit link)
+	  plus the site globals every page has: generalEntry, headerEntry, footerEntry
+	A layout may read the element's fields; it never adds fields. -#}
+{% import "_macros/images" as images %}
+	{% import "_macros/images" as images %}
+	{% set pageStyle = entry.pageStyle.one() %}
+
+	{% if portfolio %}
+		{% set cats = portfolio.portfolioCategories.all() %}
+		{% set tags = portfolio.tags.all() %}
+		{% set cover = portfolio.featureImage.one() ?? portfolio.image.one() ?? null %}
+		{% set clientLogo = portfolio.clientLogo.one() ?? null %}
+
+		{% embed "_components/page-style" with { owner: entry, pageClass: 'portfolio-page' } %}{% block body %}
+			{% import "_macros/images" as images %}
+
+			{% cache using key 'phd-' ~ portfolio.id ~ '-' ~ portfolio.dateUpdated.timestamp %}
+			{# Spec table (Client / Industry / Services / Year …): a value's first line is
+			   the headline, further lines sit underneath in a smaller size #}
+			{% set facts = [] %}
+			{% for row in portfolio.featureItemTable ?? [] %}
+				{% set label = (row.item ?? row.col1 ?? '')|trim|trim(':', 'right') %}
+				{% set lines = (row.quantity ?? row.col2 ?? '')|striptags|split("
+")|map(l => l|trim|trim(',', 'right'))|filter(l => l|length) %}
+				{% if label|length and lines|length %}
+					{% set facts = facts|merge([{ label: label, lines: lines }]) %}
+				{% endif %}
+			{% endfor %}
+
+			<div class="{{ (pageStyle ? pageStyle.SingleMatrixContainerWidth.value : 'container')|replace({'container-small': 'max-w-4xl mx-auto px-4', 'container': 'container mx-auto px-4'}) }}">
+				{# Header (same order as before): client logo, title, tags #}
+				<header class="portfolio-head">
+					<div class="portfolio-head-copy">
+						{% if clientLogo %}
+							<div class="portfolio-logo">{{ images.singleImg(clientLogo, 240, {}, '', { alt: portfolio.title }) }}</div>
+						{% endif %}
+						<h1 class="portfolio-title">{{ portfolio.title }}</h1>
+						{% if tags|length %}
+							<ul class="portfolio-tags" aria-label="{{ 'Tags'|t }}">
+								{% for tag in tags %}<li>{{ tag.title }}</li>{% endfor %}
+							</ul>
+						{% endif %}
+					</div>
+				</header>
+
+				{% include "_includes/page-banner/portfolio-banner.twig" %}
+
+				{# Intro: short description beside the project facts #}
+				{% if portfolio.shortDescription|length or facts|length %}
+					<div class="portfolio-intro">
+						{% if portfolio.shortDescription|length %}
+							<p class="portfolio-lead">{{ portfolio.shortDescription }}</p>
+						{% endif %}
+						{% if facts|length %}
+							<dl class="portfolio-facts">
+								{% for fact in facts %}
+									<div>
+										<dt>{{ fact.label }}</dt>
+										<dd>
+											{{ fact.lines|first }}
+											{% if fact.lines|length > 1 %}
+												<span class="portfolio-fact-sub">{{ fact.lines|slice(1)|join(' · ') }}</span>
+											{% endif %}
+										</dd>
+									</div>
+								{% endfor %}
+							</dl>
+						{% endif %}
+					</div>
+				{% endif %}
+
+				{% if portfolio.date|length %}
+					<p class="portfolio-date">{{ portfolio.date|date('M d, Y') }}</p>
+				{% endif %}
+			</div>
+			{% endcache %}
+
+			<div class="portfolio-story">
+				{% include "_includes/matrix-container" with {
+					entry: portfolio,
+					cache_key: 'entry-' ~ portfolio.id
+				} %}
+			</div>
+
+			{# More work slider (like the journal's related posts): same category first, then the
+			   rest, up to six; hidden when there is none #}
+			{% import "_macros/utils" as utils %}
+			{% cache using key 'pf-more-' ~ portfolio.id %}
+			{% set catIds = cats|map(c => c.id) %}
+			{% set sameCat = catIds|length ? craft.entries().section('portfolios').relatedTo({ targetElement: catIds, field: 'portfolioCategories' }).id(['and', 'not ' ~ portfolio.id]).with(['image', 'portfolioCategories']).limit(6).all() : [] %}
+			{% set moreIds = [portfolio.id]|merge(sameCat|map(p => p.id)) %}
+			{% set others = sameCat|length < 6 ? craft.entries().section('portfolios').id(['and']|merge(moreIds|map(i => 'not ' ~ i))).with(['image', 'portfolioCategories']).limit(6 - sameCat|length).all() : [] %}
+			{% set more = sameCat|merge(others) %}
+			{% if more|length %}
+				<section class="article-related portfolio-more">
+					<div class="container mx-auto px-4">
+						<div class="section-head is-left related-head">
+							<span class="section-eyebrow">{{ 'Keep looking'|t }}</span>
+							<h2 class="block-heading-title section-title">{{ 'More work'|t }}</h2>
+						</div>
+						<div class="swiper" data-swiper-options='{{ utils.swiperConfig(3, 24, true, more|length > 3) }}'>
+							<div class="swiper-wrapper">
+								{% for item in more %}
+									<div class="swiper-slide h-auto">
+										{% include "_components/_portfolios/portfolioCard.twig" with { portfolio: item } %}
+									</div>
+								{% endfor %}
+							</div>
+							<div class="swiper-pagination relative bottom-0 mt-4 pt-2"></div>
+						</div>
+					</div>
+				</section>
+			{% endif %}
+			{% endcache %}
+		{% endblock %}{% endembed %}
+	{% endif %}

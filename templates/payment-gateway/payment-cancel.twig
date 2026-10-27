@@ -1,0 +1,45 @@
+{% extends "_layouts/entry" %}
+
+{# Payment cancelled (payment-gateway plugin, PaymentController::actionCancel): gateway, orderId.
+   The layout needs an entry; these aren't CMS pages, so there's no breadcrumb. #}
+{% set entry = entry ?? craft.entries.section('general').one() %}
+{% set gateway = gateway ?? null %}
+{% set orderId = orderId ?? null %}
+
+{% block before_content %}{% endblock %}
+
+{% block content %}
+	<section class="block-section payment-result">
+		<div class="container mx-auto px-4">
+			<div class="tw-card mx-auto max-w-xl p-8 text-center md:p-12">
+				<div class="mx-auto mb-6 grid size-16 place-items-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+					<i class="ti ti-arrow-back-up text-3xl"></i>
+				</div>
+				<p class="section-eyebrow mx-auto w-fit">{{ 'Payment'|t }}</p>
+				<h1 class="mb-3 text-[clamp(2rem,4vw,2.75rem)] leading-tight">{{ 'Payment cancelled'|t }}</h1>
+				<p class="mx-auto mb-8 max-w-md text-lg text-body">{{ 'Your payment was cancelled and nothing was charged. You can pick a plan again whenever you are ready.'|t }}</p>
+
+				{% if orderId %}
+					<dl class="mb-8 divide-y divide-line rounded-[var(--radius-base)] border border-line bg-surface text-left text-sm">
+						{% if gateway %}
+							<div class="flex items-center justify-between gap-4 px-4 py-3">
+								<dt class="text-muted">{{ 'Payment method'|t }}</dt>
+								<dd class="m-0 font-medium text-strong">{{ gateway|capitalize }}</dd>
+							</div>
+						{% endif %}
+						<div class="flex items-center justify-between gap-4 px-4 py-3">
+							<dt class="shrink-0 text-muted">{{ 'Reference'|t }}</dt>
+							<dd class="m-0 min-w-0 break-all text-right font-mono text-xs text-strong">{{ orderId }}</dd>
+						</div>
+					</dl>
+				{% endif %}
+
+				<div class="flex flex-wrap justify-center gap-3">
+					<a href="{{ url('price') }}" class="tw-btn tw-btn-primary no-underline">{{ 'View plans'|t }}</a>
+					<a href="{{ siteUrl }}" class="tw-btn tw-btn-secondary no-underline">{{ 'Back to home'|t }}</a>
+				</div>
+				<p class="mt-8 mb-0 text-sm text-muted">{{ 'Something went wrong?'|t }} <a href="{{ url('contact') }}" class="text-accent">{{ 'Contact us'|t }}</a></p>
+			</div>
+		</div>
+	</section>
+{% endblock %}

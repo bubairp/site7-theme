@@ -1,0 +1,25 @@
+{# templates/_macros/layout.twig #}
+
+{% macro getContainerClass(sizeKey) %}
+    {% set containerWidthMap = {
+        'default': 'container mx-auto px-4',
+        'flatMinimalAccordion': 'container mx-auto px-4',
+        'fullWidth': 'w-full px-4',
+        'boxedLg': 'container mx-auto max-w-[1120px] px-4',
+        'boxedSm': 'container mx-auto max-w-[960px] px-4'
+    } %}
+    
+    {{- containerWidthMap[sizeKey] ?? 'container mx-auto px-4' -}}
+{% endmacro %}
+
+{# Container classes for the page "Title Container Width" dropdown
+   (full-width / container / container container-large / container container-small) #}
+{% macro titleContainerClass(value) %}
+    {% set titleWidthMap = {
+        'full-width': 'w-full px-4 md:px-8',
+        'container': 'container mx-auto px-4',
+        'container container-large': 'mx-auto max-w-[1440px] px-4 md:px-8',
+        'container container-small': 'mx-auto max-w-4xl px-4'
+    } %}
+    {{- titleWidthMap[value ?? 'container'] ?? 'container mx-auto px-4' -}}
+{% endmacro %}

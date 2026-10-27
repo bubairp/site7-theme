@@ -1,0 +1,17 @@
+{% import "_macros/images" as images %}
+{% if casestudy.featureImage|length %}
+	{% cache using key 'chd-' ~ casestudy.id ~ '-' ~ casestudy.dateUpdated.timestamp %}
+	<section class="relative z-0">
+		{% set image = casestudy.featureImage.one() %}
+		{% if image %}
+			{{ images.preloadBg(image) }}
+			<div class="banner-bg absolute inset-0 -z-1 bg-cover bg-center" style="background-image: url('{{ images.bgImageUrl(image)|trim }}');"></div>
+		{% endif %}
+		<div class="hidden 2xl:block" style="height: 500px;"></div>
+		<div class="hidden xl:block 2xl:hidden" style="height: 450px;"></div>
+		<div class="hidden lg:block xl:hidden" style="height: 430px;"></div>
+		<div class="hidden md:block lg:hidden" style="height: 400px;"></div>
+		<div class="md:hidden" style="height: 300px;"></div>
+	</section>
+	{% endcache %}
+{% endif %}

@@ -1,0 +1,25 @@
+{# Hero layout 3 (editorial, DESIGN.md §8): full-bleed photo or video behind a warm
+   overlay, eyebrow pill, display serif heading, lead, buttons; the check list sits along
+   the bottom (a stats row when written "figure | label", see _list.twig). #}
+{% set multi = heroBannerSliders|length > 1 %}
+<section class="hero-editorial hero-layout is-dark relative w-full" data-theme="dark">
+	<div class="{{ multi ? 'swiper' : '' }}" {% if multi %}data-swiper-options='{"effect": "fade","fadeEffect": {"crossFade": true},"speed": 900,"autoplay": {"delay": 7000,"disableOnInteraction": false},"pagination": {"el": ".swiper-pagination","clickable": true}}'{% endif %}>
+		<div class="{{ multi ? 'swiper-wrapper' : '' }}">
+			{% for slide in heroBannerSliders %}
+				{% set bgColor = (slide.colorLibrary.one().colorcode ?? null)|roleColor %}
+				<div class="{{ multi ? 'swiper-slide' : '' }} hero-editorial-slide" {% if bgColor %}style="background-color: {{ bgColor }};"{% endif %}>
+					{% include "_includes/hero-banner/_media-pair" with { width: 1920, eager: loop.first } %}
+					<div class="hero-editorial-overlay" aria-hidden="true"></div>
+
+					<div class="container mx-auto px-4 hero-editorial-inner">
+						<div class="hero-editorial-copy">
+							{% include "_includes/hero-banner/_copy" with { headingTag: loop.first ? 'h1' : 'h2', eyebrowClass: 'hero-eyebrow', withList: false } %}
+						</div>
+						{% include "_includes/hero-banner/_list" with { items: (slide.displayCheckList ?? false) ? (slide.checkListShowTable ?? []) : [] } %}
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+		{% if multi %}<div class="swiper-pagination swiper-pagination-overlay hero-pagination"></div>{% endif %}
+	</div>
+</section>

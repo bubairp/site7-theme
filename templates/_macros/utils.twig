@@ -1,0 +1,58 @@
+{% macro formatTime24Hour(time) %}
+	{{ time|date('H:i') }}
+{% endmacro %}
+
+{# Makes CMS-entered external links usable: "facebook.com" -> "https://facebook.com".
+   Leaves absolute URLs, site paths, anchors, mailto: and tel: untouched. #}
+{% macro externalUrl(url) %}{% apply spaceless %}
+	{% set url = (url ?? '') ~ '' %}
+	{% if url is empty or url matches '/^([a-z][a-z0-9+.-]*:|\\/|#)/i' %}
+		{{ url }}
+	{% else %}
+		{{ 'https://' ~ url }}
+	{% endif %}
+{% endapply %}{% endmacro %}
+
+{# target/rel attributes for a link that opens in a new tab. Prints nothing for
+   mailto:, tel: and sms: links, which hand off to an app instead of a page. #}
+{% macro newTabAttrs(url, rel = 'noopener noreferrer') -%}
+	{%- if not (((url ?? '') ~ '') matches '/^(mailto|tel|sms):/i') -%}
+		target="_blank" rel="{{ rel }}"
+	{%- endif -%}
+{%- endmacro %}
+
+{# Readable platform name for a social/contact link: "Email", "Phone", "SMS",
+   or the domain name ("https://www.linkedin.com/..." -> "Linkedin"). #}
+{% macro linkPlatform(url) -%}
+	{%- set url = (url ?? '') ~ '' -%}
+	{%- if url matches '/^mailto:/i' -%}Email
+	{%- elseif url matches '/^tel:/i' -%}Phone
+	{%- elseif url matches '/^sms:/i' -%}SMS
+	{%- else -%}{{ url|replace({'https://': '', 'http://': '', 'www.': ''})|split('.')|first|capitalize }}
+	{%- endif -%}
+{%- endmacro %}
+
+{% macro swiperConfig(itemsPerRow, spaceBetween = 32, autoplay = false, loop = false) %}
+	{% set itemsPerRow = itemsPerRow|default(3) %}
+	{% set config = {
+		"spaceBetween": spaceBetween,
+		"pagination": { "el": ".swiper-pagination", "clickable": true },
+		"breakpoints": {
+			"576": { "slidesPerView": 2 },
+			"992": { "slidesPerView": itemsPerRow }
+		}
+	} %}
+	
+	{% if autoplay %}
+		{% set config = config|merge({
+			"autoplay": { "delay": 5000, "disableOnInteraction": false },
+			"speed": 800
+		}) %}
+	{% endif %}
+	
+	{% if loop %}
+		{% set config = config|merge({ "loop": true }) %}
+	{% endif %}
+	
+	{{ config|json_encode|raw }}
+{% endmacro %}

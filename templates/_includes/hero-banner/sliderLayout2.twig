@@ -1,0 +1,30 @@
+{# Hero layout 2 (half and half, DESIGN.md §8): full width, the copy on a colour panel
+   on the left (aligned with the page container), the image or video edge to edge on the
+   right half. Panel: the slide's colour, else Aged Paper, or Ink when "Theme dark" is on.
+   Fills the screen. Below 1024px the media moves behind the copy (see sections.css). #}
+{% set multi = heroBannerSliders|length > 1 %}
+{% set firstDark = (heroBannerSliders|first).themeDark ?? false %}
+<section class="hero-half hero-layout {{ firstDark ? 'is-dark' : 'is-light' }} relative w-full">
+	<div class="{{ multi ? 'swiper' : '' }}" {% if multi %}data-swiper-options='{"effect": "fade","fadeEffect": {"crossFade": true},"speed": 800,"autoplay": {"delay": 7000,"disableOnInteraction": false},"pagination": {"el": ".swiper-pagination","clickable": true}}'{% endif %}>
+		<div class="{{ multi ? 'swiper-wrapper' : '' }}">
+			{% for slide in heroBannerSliders %}
+				{% set dark = slide.themeDark ?? false %}
+				{% set bgColor = (slide.colorLibrary.one().colorcode ?? null)|roleColor %}
+				{% set hasMedia = slide.imageVideo|length or slide.bgImageVideoMobile|length %}
+				<div class="{{ multi ? 'swiper-slide' : '' }} hero-half-slide {{ dark ? 'is-dark' : 'is-light' }} {{ hasMedia ? 'has-media' : '' }}" data-theme="{{ dark ? 'dark' : 'light' }}" {% if bgColor %}style="background-color: {{ bgColor }};"{% endif %}>
+					<div class="container mx-auto px-4 hero-half-inner">
+						<div class="hero-half-copy">
+							{% include "_includes/hero-banner/_copy" with { headingTag: loop.first ? 'h1' : 'h2', eyebrowClass: 'section-eyebrow' } %}
+						</div>
+					</div>
+					{% if hasMedia %}
+						<div class="hero-half-media">
+							{% include "_includes/hero-banner/_media-pair" with { width: 1440, eager: loop.first } %}
+						</div>
+					{% endif %}
+				</div>
+			{% endfor %}
+		</div>
+		{% if multi %}<div class="swiper-pagination swiper-pagination-overlay hero-pagination"></div>{% endif %}
+	</div>
+</section>

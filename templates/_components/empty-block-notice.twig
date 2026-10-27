@@ -1,0 +1,13 @@
+{#
+	Shown in place of a collection block (Teams, Portfolios, Testimonials, Blogs, Case
+	Studies, Products) that has nothing to list. Visitors see nothing; logged-in admins see
+	why, so an empty section never reaches the page unnoticed.
+	Params: what (e.g. "team members"), pack (e.g. "Team Pack")
+#}
+{% if currentUser and currentUser.admin %}
+	<div class="container mx-auto px-4 py-4">
+		<p class="m-0 rounded-[var(--radius-card)] border border-dashed border-line bg-surface-alt px-4 py-3 text-sm text-muted">
+			{{ "This block is hidden from visitors: there are no {what} on this site yet. Add some, or install the {pack} in Site7 Studio → Library."|t('site', { what: what, pack: pack }) }}
+		</p>
+	</div>
+{% endif %}

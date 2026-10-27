@@ -1,0 +1,35 @@
+{% if generalEntry.relatedProducts | length %}
+	{# Same category first, then the newest other products #}
+	{% set current = product ?? entry %}
+	{% set currentCats = current.productCategory.ids() %}
+	{% set relatedProducts = currentCats|length ? craft.entries().section('products').relatedTo({ targetElement: currentCats, field: 'productCategory' }).id('not ' ~ current.id).with(['image', 'productCategory', 'selectAuthor']).orderBy('postDate DESC').limit(8).all() : [] %}
+	{% set relatedProducts = relatedProducts|merge(craft.entries().section('products').id(['and', 'not ' ~ current.id]|merge(relatedProducts|map(p => 'not ' ~ p.id))).with(['image', 'productCategory', 'selectAuthor']).orderBy('postDate DESC').limit(max(0, 8 - relatedProducts|length)).all()) %}
+	{% if relatedProducts | length %}
+		<div class="swiper" data-swiper-options='
+								{
+								"spaceBetween": 24,
+								"pagination": {
+									"el": ".swiper-pagination",
+									"clickable": true
+								},
+								"breakpoints": {
+									"576": { "slidesPerView": 2 },
+									"992": { "slidesPerView": {{ generalEntry.productColumnPerRow.value }} }
+								},
+								"autoplay": {
+									"delay": 3000,
+									"disableOnInteraction": false
+								},
+								"speed": 1000,
+								"loop": true
+								}
+							'>
+			<div class="swiper-wrapper">
+				{% for product in relatedProducts %}
+					{% include "_components/_products/singleProductInSlider.twig" with { product: product } %}
+				{% endfor %}
+			</div>
+			<div class="swiper-pagination relative bottom-0 mt-4 pt-2"></div>
+		</div>
+	{% endif %}
+{% endif %}

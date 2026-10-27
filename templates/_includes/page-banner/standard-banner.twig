@@ -1,0 +1,120 @@
+{% import '_components/ctaButton' as buttons %}
+{# Editorial page banner (DESIGN.md §8), shared by standard pages, the contact page,
+   services, team members, authors and product categories. The page's "Banner Layout" dropdown
+   picks the arrangement:
+     sliderLayout1  Aged Paper band, copy beside the image in a rounded frame
+     sliderLayout2  centred copy with a wide rounded image below
+     sliderLayout3  full-bleed image behind the copy (Ink overlay, Parchment text)
+   A slide without an image always falls back to the plain text band.
+
+   Slides come from the page's "Banner" field (standardBannerSliders, Matrix entries).
+   A page without banner slides can pass bannerFallback, built from its own fields, so
+   it still gets this banner:
+     bannerFallback = {
+       heading:     'Title',                  required
+       description: 'Lead text',              optional
+       media:       asset,                    optional image/video
+       layout:      'sliderLayout3',          default arrangement if the page has none chosen
+       eyebrow:     '<span>…</span>',         optional, above the title (markup)
+       extra:       '<nav>…</nav>',           optional, below the lead (markup)
+       crumbs:      { element: …, … }         optional breadcrumb arguments
+     }
+   The page's Short Description fills in the lead of the first slide when it has none.
+   Several slides still run as a fade slider.
+   Wrap the include in <div class="header-banner"> so the header can sit over it. #}
+{% import "_macros/images" as images %}
+
+{# Normalise Matrix slides and the fallback to one shape #}
+{% set slides = [] %}
+{% for slide in standardBannerSliders ?? [] %}
+	{% set slides = slides|merge([{
+		heading: slide.plainText ?: ((bannerFallback.heading ?? null) ?: (entry.title ?? '')),
+		description: slide.shortDescription,
+		media: slide.imageVideo.one(),
+		mediaMob: slide.imageVideoMobile.one(),
+		bgColor: (slide.colorLibrary.one().colorcode ?? null)|roleColor,
+		align: slide.textAlign.value ?? 'start',
+		headingLevel: slide.bannerHeadingTags.value ?? '2',
+		buttons: slide.button is defined ? slide.button.all() : [],
+	}]) %}
+{% endfor %}
+{% set fallback = bannerFallback ?? null %}
+{% if slides is empty and fallback and fallback.heading is defined %}
+	{% set slides = [{ media: null, mediaMob: null, bgColor: null, align: 'start', headingLevel: '2', buttons: [] }|merge(fallback)] %}
+{% endif %}
+
+{% if slides|length > 0 %}
+	{% set multi = slides|length > 1 %}
+	{% set bannerLayout = (entry.bannerLayout.value ?? null) ?: (fallback.layout ?? null) %}
+	{% set bannerLayout = bannerLayout in ['sliderLayout2', 'sliderLayout3'] ? bannerLayout : 'sliderLayout1' %}
+	{% set pageLead = entry.shortDescription ?? null %}
+	<section class="page-hero page-hero--{{ bannerLayout }} relative w-full" data-theme="light">
+		<div class="{{ multi ? 'swiper' : 'page-hero-static' }}" {% if multi %}data-swiper-options='{"effect": "fade","fadeEffect": {"crossFade": true},"speed": 800,"autoHeight": true,"autoplay": {"delay": 7000,"disableOnInteraction": false},"pagination": {"el": ".swiper-pagination","clickable": true}}'{% endif %}>
+			<div class="{{ multi ? 'swiper-wrapper' : '' }}">
+				{% for slide in slides %}
+					{% set heading = slide.heading %}
+					{% set description = slide.description ?: (loop.first ? pageLead : null) %}
+					{% set media = slide.media %}
+					{% set mediaMob = slide.mediaMob %}
+					{% set headingTag = loop.first ? 'h1' : ('h' ~ slide.headingLevel) %}
+					{% set isCover = bannerLayout == 'sliderLayout3' and media %}
+					{% set isWide = bannerLayout == 'sliderLayout2' and media %}
+					{% set isSplit = bannerLayout == 'sliderLayout1' and media %}
+					{% set centered = isWide or (slide.align == 'center' and not isSplit) %}
+
+					{# Image or video, shared by the three arrangements #}
+					{% set mediaHtml %}
+						{% if media %}
+							{% if media.kind == 'video' %}
+								<video class="w-full h-full object-cover" autoplay loop muted playsinline>
+									<source src="{{ media.url }}" type="{{ media.mimeType }}">
+								</video>
+							{% else %}
+								<picture>
+									{% if mediaMob and mediaMob.kind == 'image' %}
+										<source media="(max-width: 767.98px)" srcset="{{ images.bgImageUrl(mediaMob, 768)|trim }}">
+									{% endif %}
+									<img src="{{ images.bgImageUrl(media, isSplit ? 1200 : 1920)|trim }}" alt="{{ isCover ? '' : (media.alt ?? heading) }}" class="w-full h-full object-cover" {% if loop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+								</picture>
+							{% endif %}
+						{% endif %}
+					{% endset %}
+
+					<div class="{{ multi ? 'swiper-slide' : '' }} page-hero-slide {{ isCover ? 'is-cover' : '' }}" {% if isCover %}data-theme="dark"{% endif %} {% if slide.bgColor and not isCover %}style="background-color: {{ slide.bgColor }};"{% endif %}>
+						{% if isCover %}
+							<div class="page-hero-cover-media" aria-hidden="true">{{ mediaHtml }}</div>
+							<div class="page-hero-cover-overlay" aria-hidden="true"></div>
+						{% endif %}
+						<div class="container mx-auto px-4 relative">
+							<div class="page-hero-grid {{ isSplit ? 'has-media' : 'no-media' }} {{ centered ? 'is-center' : '' }} {{ isWide ? 'has-wide' : '' }}">
+								<div class="page-hero-copy">
+									{% if loop.first %}
+										{% include "_components/breadcrumbs" with ({ inline: true }|merge(fallback.crumbs ?? {})) %}
+									{% endif %}
+									{% if slide.eyebrow ?? false %}{{ slide.eyebrow|raw }}{% endif %}
+									<{{ headingTag }} class="page-hero-title">{{ heading }}</{{ headingTag }}>
+									{% if description|length %}
+										<p class="page-hero-lead">{{ description|striptags }}</p>
+									{% endif %}
+									{% if slide.extra ?? false %}{{ slide.extra|raw }}{% endif %}
+									{% if slide.buttons|length %}
+										<div class="page-hero-actions">{{ buttons.renderButton(slide.buttons) }}</div>
+									{% endif %}
+								</div>
+
+								{% if isSplit %}
+									<div class="page-hero-media">{{ mediaHtml }}</div>
+								{% endif %}
+							</div>
+
+							{% if isWide %}
+								<div class="page-hero-wide">{{ mediaHtml }}</div>
+							{% endif %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+			{% if multi %}<div class="swiper-pagination page-hero-pagination"></div>{% endif %}
+		</div>
+	</section>
+{% endif %}

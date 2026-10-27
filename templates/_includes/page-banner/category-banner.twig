@@ -1,0 +1,27 @@
+{# Product category banner: the standard page banner (standard-banner.twig) with the
+   shop eyebrow (product count) above the title and the category pills below the lead.
+   The category's own Banner slides replace the title/lead/image when it has any.
+   Expects `category` and `bannerFallback` (set in entries/categories/_entry.twig). #}
+{% set shopPage = craft.entries().section('standardPages').slug('products').one() %}
+{% set siblings = craft.entries().section('productCategory').level(category.level).relatedTo({ sourceElement: craft.entries().section('products').ids(), field: 'productCategory' }).all() %}
+{% set productTotal = craft.entries().section('products').relatedTo([category]|merge(category.getDescendants().all())).count() %}
+
+{% set eyebrow %}
+	<span class="section-eyebrow category-eyebrow">{{ 'Shop'|t }} · {{ '{count, plural, =1{# piece} other{# pieces}}'|t('site', { count: productTotal }) }}</span>
+{% endset %}
+{% set pills %}
+	{% if siblings|length > 1 %}
+		<nav class="category-pills" aria-label="{{ 'Shop categories'|t }}">
+			{% if shopPage %}<a href="{{ shopPage.url }}" class="filter-pill">{{ 'All'|t }}</a>{% endif %}
+			{% for sib in siblings %}
+				<a href="{{ sib.url }}" class="filter-pill {{ sib.id == category.id ? 'active' : '' }}" {% if sib.id == category.id %}aria-current="page"{% endif %}>{{ sib.title }}</a>
+			{% endfor %}
+		</nav>
+	{% endif %}
+{% endset %}
+
+{% set bannerFallback = (bannerFallback ?? {})|merge({ eyebrow: eyebrow, extra: pills }) %}
+{% set standardBannerSliders = (category.standardBannerSlider ?? null) ? category.standardBannerSlider.all() : [] %}
+<div class="header-banner">
+	{% include "_includes/page-banner/standard-banner" %}
+</div>

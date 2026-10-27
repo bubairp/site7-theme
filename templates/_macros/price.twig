@@ -1,0 +1,37 @@
+{# Product price, shared by the product page and the product cards.
+   - Price / Sale Price are Money fields; "Show price" (showPrice) off shows nothing.
+   - A sale price lower than the price shows the sale price, the price struck through
+     and a discount badge (badge = false leaves the badge out, for narrow cards).
+   - Fallback: products saved before the Price field existed keep their price as a
+     "Price" row in the Product Features table; that row is used when Price is empty.
+   Usage: {% import '_macros/price' as prices %}{{ prices.render(product, 'product-price') }} #}
+{% macro render(product, class = 'product-card-price', badge = true) %}
+	{%- if product.showPrice ?? true -%}
+		{%- set price = product.price ?? null -%}
+		{%- set sale = product.salePrice ?? null -%}
+		{%- if price -%}
+			{%- if sale and sale.amount|number < price.amount|number -%}
+				{%- set pct = ((1 - sale.amount / price.amount) * 100)|round -%}
+				<span class="{{ class }} is-sale">
+					<span class="price-now">{{ _self.amount(sale) }}</span>
+					<s class="price-was"><span class="sr-only">{{ 'Was'|t }} </span>{{ _self.amount(price) }}</s>
+					{% if badge and pct > 0 %}<span class="price-badge">−{{ pct }}%</span>{% endif %}
+				</span>
+			{%- else -%}
+				<span class="{{ class }}">{{ _self.amount(price) }}</span>
+			{%- endif -%}
+		{%- else -%}
+			{%- set legacy = (product.featureItemTable ?? [])|filter(r => ((r.item ?? r.col1 ?? '')|trim|trim(':', 'right')|lower) == 'price')|first -%}
+			{%- if legacy and (legacy.quantity ?? legacy.col2 ?? '')|length -%}
+				<span class="{{ class }}">{{ legacy.quantity ?? legacy.col2 }}</span>
+			{%- endif -%}
+		{%- endif -%}
+	{%- endif -%}
+{% endmacro %}
+
+{# A Money value as "₹1,450" (no ".00" on whole amounts). Money stores minor units; all
+   the currencies used here have two decimals. #}
+{% macro amount(money) %}{{ (money.amount / 100)|currency(money.currency.code, [], [], true) }}{% endmacro %}
+
+{# True when the specification row is the legacy "Price" row (skip it in spec lists) #}
+{% macro isPriceRow(row) %}{{ ((row.item ?? row.col1 ?? '')|trim|trim(':', 'right')|lower) == 'price' ? '1' : '' }}{% endmacro %}

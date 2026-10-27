@@ -1,0 +1,61 @@
+{% extends "_layouts/entry" %}
+{% import "_macros/images" as images %}
+{% import "_macros/ratings" as ratings %}
+{% import '_components/ctaButton' as buttons %}
+{% import '_macros/price' as prices %}
+
+{# Fetch Product with Eager Loading #}
+{% set product = craft.entries()
+    .section('products')
+    .slug(craft.app.request.segment(2))
+    .with(['image', 'images', 'featureImage', 'tags', 'productCategory', 'selectAuthor', 'selectAuthor.image'])
+    .one() %}
+
+{% set productImages = [] %}
+{% if product.image|length %}
+	{% set productImages = productImages|merge(product.image.all()) %}
+{% endif %}
+{% if product.images is defined and product.images|length %}
+	{% set productImages = productImages|merge(product.images.all()) %}
+{% endif %}
+{% set featureItems = product.featureItemTable ?? [] %}
+{% set productButton = product.button.all() %}
+{# Books (entry type "book") have an author and publication details; products don't #}
+{% set isBook = (product.type.handle ?? '') == 'book' %}
+{% set author = isBook and (product.selectAuthor ?? null) ? product.selectAuthor.one() : null %}
+{% set category = product.productCategory.one() ?? null %}
+
+{# Calculate Average Rating #}
+{% set reviews = craft.entries().section('productReview').relatedTo({ targetElement: product.id, field: 'singleSelect' }).status('live').all() %}
+{% set totalRate = 0 %}{% set ratedCount = 0 %}
+{% set reviewCount = reviews|length %}
+{% for review in reviews %}
+	{% set totalRate = totalRate + (review.rate ?? 0) %}{% set ratedCount = ratedCount + ((review.rate ?? 0) > 0 ? 1 : 0) %}
+{% endfor %}
+{% set averageRating = ratedCount > 0 ? (totalRate / ratedCount)|number_format(1) : '0.0' %}
+
+{% block structured_data %}
+	{% if product %}
+		{% set thumbImg = product.image|length ? product.image.one() : null %}
+
+		{% set data = {
+			"@context": "https://schema.org",
+			"@type": "Product",
+			"name": product.title,
+			"description": product.productDiscription ?? ''
+		} %}
+
+		{% if thumbImg %}
+			{% set data = data|merge({ "image": [ thumbImg.url ] }) %}
+		{% endif %}
+
+		<script type="application/ld+json">
+			{{ data|json_encode(constant('JSON_UNESCAPED_SLASHES'))|raw }}
+		</script>
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+	{# Markup: _layouts/detail/product.twig (a design overrides that file, not this one) #}
+	{% include "_layouts/detail/product" with { element: product } %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{# headingContent.twig — Heading + Content matrix block #}
+{% from '_macros/block-style' import bsClasses, bsStyle, bsResponsive, bsContainer %}
+
+{% set heading     = block.heading ?? '' %}
+{# Dropdown: use its value, and only allow real heading tags (an empty value would print "<>") #}
+{% set headingTags = (block.headingTags.value ?? block.headingTags ?? '') ~ '' %}
+{% set headingTags = headingTags in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] ? headingTags : 'h2' %}
+{% set align       = block.align ?? 'left' %}
+{% set contentData = block.contentdata ?? '' %}
+
+{# A cleared rich-text field can still hold "<p></p>" or "<p>&nbsp;</p>": count that as empty,
+   but keep media (img / iframe / video) as real content. #}
+{% set hasHeading = (heading ~ '')|striptags|replace({'&nbsp;': '', '&#160;': ''})|trim is not empty %}
+{% set hasContent = (contentData ~ '')|striptags('<img><iframe><video><svg><hr>')|replace({'&nbsp;': '', '&#160;': ''})|trim is not empty %}
+{% set blockStyle  = block.blockStyle ?? [] %}
+{% set blockType   = block.type.handle ?? 'headingContent' %}
+{% set blockTypeUid = block.uid ?? '' %}
+{% set scopedSel   = '.' ~ blockType ~ blockTypeUid ~ '-style' %}
+
+{# Container: CMS override, else default #}
+{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
+
+{# Responsive spacing + child element color rules (only emitted when needed) #}
+{{ bsResponsive(blockStyle, scopedSel) }}
+
+{% set themeSwitche = null %}
+{% if blockStyle is defined and blockStyle|length %}
+	{% set blockStyleData = blockStyle.one() ?? null %}
+	{% if blockStyleData and blockStyleData.background is defined and blockStyleData.background|length %}
+		{% set backgroundEntry = blockStyleData.background.one() ?? null %}
+		{% set themeSwitche = backgroundEntry.themeDark ?? null %}
+	{% endif %}
+{% endif %}
+
+{# Nothing to show: render nothing (no empty section with padding) #}
+{% if hasHeading or hasContent %}
+<section class="header-content-block heading-content block-section {{ blockType }}{{ blockTypeUid }}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
+	<div class="{{ containerWidth }} flex flex-col justify-center {{ align == 'center' ? 'items-center' : (align == 'right' ? 'items-end' : 'items-start') }}">
+		{% if hasHeading %}
+			<{{ headingTags }} class="block-heading-title heading-content-title w-full {{ hasContent ? '' : 'mb-0' }}" style="text-align:{{ align }}">{{ heading|raw }}</{{ headingTags }}>
+		{% endif %}
+
+		{% if hasContent %}
+			<div class="block-description heading-content-text tw-rich-text w-full {{ align == 'center' ? 'mx-auto' : (align == 'right' ? 'ml-auto' : 'mr-auto') }}" style="text-align:{{ align }}">{{ contentData|raw }}</div>
+		{% endif %}
+	</div>
+</section>
+{% endif %}

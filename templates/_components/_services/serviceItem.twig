@@ -1,0 +1,15 @@
+{% import "_macros/images" as images %}
+
+{% set align = (cardAlignClass ?? 'text-left')|replace({'text-start': 'text-left', 'text-end': 'text-right'}) %}
+{% set iconAlign = 'center' in align ? 'mx-auto' : ('right' in align ? 'ms-auto' : '') %}
+
+<a class="service-card group {{ align }}" href="{{ item.url }}">
+	{% if item.image|length %}
+		<span class="service-card-icon {{ iconAlign }}" {{ images.iconMask(item.image.0) }}>{{ images.singleImg(item.image.0, 56, {'ratio': 1}, 'w-full h-full object-contain') }}</span>
+	{% endif %}
+	<h3 class="service-card-title">{{ item.title }}</h3>
+	{% if item.shortDescription|length %}
+		<div class="service-card-text tw-rich-text">{{ item.shortDescription }}</div>
+	{% endif %}
+	<span class="service-card-link">{{ 'Learn more'|t }}<i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+</a>

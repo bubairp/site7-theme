@@ -1,0 +1,130 @@
+{% import "_macros/images" as images %}
+{% import '_macros/utils' as utils %}
+{% import '_components/ctaButton' as buttons %}
+<!-- Footer --><style>
+	.last-0 > *:last-child {
+		margin-bottom: 0;
+	}
+</style>
+<div class="footer-main {{ footerClasses }} relative pt-10 pb-4 md:pt-12 lg:pt-14 xl:py-16 bg-white dark:bg-dark text-gray-900 dark:text-white border-t border-gray-100 dark:border-gray-800 transition-colors duration-300" {% if themeSwitche %} data-theme="dark" {% endif %}>
+	<div class="hidden dark:block absolute top-0 left-0 w-full h-full bg-white/5 pointer-events-none"></div>
+	<div class="{{ footerContainerWidth }}">
+		<div class="border-0 border-b border-solid border-slate-200 dark:border-white/10">
+			<div class="flex flex-col lg:flex-row gap-0 lg:gap-12 pb-6 sm:pb-8 sm:pt-2 {{ footerVerticalAlign }}">
+				{% set hasTiming = footerDisplayOfficeTiming and officeTiming and officeTiming|length > 0 %}
+				{# Tablet: brand (logo, description, CTA) beside Office Timing. Phone: Office Timing is one
+				   more collapsible row, like the menus below it. Desktop: one column. #}
+				<div class="w-full lg:w-1/4 md:mb-10 lg:mb-0 md:grid md:grid-cols-2 md:gap-x-12 lg:block">
+					<div class="mb-6 sm:mb-8 md:mb-0">
+						{% set siteFooterLogo = generalEntry.footerLogo.one() ?? generalEntry.logo.one() ?? null %}
+						{% if footerDisplayLogo and siteFooterLogo %}
+							<a class="inline-block mb-4 md:mb-6 transition-transform duration-300 hover:scale-105" href="/" style="text-decoration: none !important;">
+								{% include '_includes/footer/_logo' with { sizeClass: 'h-9 md:h-10' } %}
+							</a>
+						{% endif %}
+						{% if footerEntry.description %}
+							<div class="text-sm mb-6 max-w-md text-slate-600 dark:text-white/70 leading-relaxed">{{ footerEntry.description }}</div>
+						{% endif %}
+						<!-- CTA Button -->
+						{% if footerDisplayCTA is defined and footerButton is defined and footerDisplayCTA  and footerButton %}
+							{% set customClasses = "tw-btn-sm text-sm" %}
+							{{ buttons.renderButton(footerButton, {}, customClasses) }}
+						{% endif %}
+					</div>
+
+					{% if hasTiming %}
+						<div class="border-t border-dashed border-slate-200 dark:border-slate-800 sm:border-0 sm:mb-8 md:mb-0 lg:mt-8" x-data="{ open: false }">
+							<button @click="open = !open" :aria-expanded="open.toString()" class="w-full flex items-center justify-between font-heading text-lg font-bold text-slate-900 dark:text-white sm:cursor-default sm:pointer-events-none py-4 sm:py-0 sm:mb-5 bg-transparent border-b border-dashed border-slate-200 dark:border-slate-800 sm:border-none text-left">
+								<span>{{ 'Office Timing'|t }}</span>
+								<svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform sm:hidden text-slate-500" fill="none" viewbox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+							</button>
+							<ul :class="{'hidden': !open}" class="hidden sm:flex list-none mb-0 pt-4 pb-6 sm:p-0 flex-col sm:max-w-sm md:max-w-none">
+								{% for officeTime in officeTiming %}
+									<li class="flex justify-between items-center text-sm mb-2 pb-2 border-b border-dashed border-slate-200 dark:border-slate-700 last:border-0 last:pb-0 last:mb-0">
+										<span class="font-medium text-slate-700 dark:text-white/85">{{officeTime.day}}</span>
+										<span class="text-slate-500 dark:text-white/70">
+											{{ utils.formatTime24Hour(officeTime.startTime) }} - {{ utils.formatTime24Hour(officeTime.endTime) }}
+										</span>
+									</li>
+								{% endfor %}
+							</ul>
+						</div>
+					{% endif %}
+				</div>
+				<div class="w-full min-w-0 lg:w-8/12 lg:ms-auto">
+					<div class="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-6 md:gap-8 {{ hasTiming ? '' : 'border-t border-dashed border-slate-200 dark:border-slate-800 sm:border-0' }}">
+						<div class="mb-0 md:mb-0 w-full" x-data="{ open: false }">
+							{# Falls back to this site's existing "company" / "support" menus when no menu is picked on the footer entry #}
+							{% set col1MenuHandle = footerEntry.footerMenuCol1 ?: 'company' %}
+							{% set col1MenuObj = footerEntry.footerMenuCol1 ? craft.simplerpmenu.getMenu(col1MenuHandle) : null %}
+							<button @click="open = !open" class="w-full flex items-center justify-between font-heading text-lg font-bold text-slate-900 dark:text-white sm:cursor-default sm:pointer-events-none py-4 sm:py-0 sm:mb-5 bg-transparent border-b border-dashed border-slate-200 dark:border-slate-800 sm:border-none text-left">
+								<span>{{ col1MenuObj ? col1MenuObj.name|t : 'Page links'|t }}</span>
+								<svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform sm:hidden text-slate-500" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+							</button>
+							<div :class="{'hidden': !open}" class="hidden sm:block pt-4 pb-6 sm:p-0">
+								{{ craft.simplerpmenu.getRpMenuHTML(col1MenuHandle,{ 'menu-id': 'footerMenuCol1','menu-class':'','ul-class':'flex flex-col text-sm p-0 gap-1','li-class':'list-none', 'link-class':'text-slate-600 dark:text-white/85 hover:text-accent dark:hover:text-accent font-normal py-1 transition-all duration-300 hover:translate-x-1 no-underline inline-block'}) }}
+							</div>
+						</div>
+						<div class="mb-0 md:mb-0 w-full" x-data="{ open: false }">
+							{% set col2MenuHandle = footerEntry.footerMenuCol2 ?: 'support' %}
+							{% set col2MenuObj = footerEntry.footerMenuCol2 ? craft.simplerpmenu.getMenu(col2MenuHandle) : null %}
+							<button @click="open = !open" class="w-full flex items-center justify-between font-heading text-lg font-bold text-slate-900 dark:text-white sm:cursor-default sm:pointer-events-none py-4 sm:py-0 sm:mb-5 bg-transparent border-b border-dashed border-slate-200 dark:border-slate-800 sm:border-none text-left">
+								<span>{{ col2MenuObj ? col2MenuObj.name|t : 'Useful links'|t }}</span>
+								<svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform sm:hidden text-slate-500" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+							</button>
+							<div :class="{'hidden': !open}" class="hidden sm:block pt-4 pb-6 sm:p-0">
+								{{ craft.simplerpmenu.getRpMenuHTML(col2MenuHandle,{ 'menu-id': 'footerMenuCol2','menu-class':'','ul-class':'flex flex-col text-sm p-0 gap-1','li-class':'list-none', 'link-class':'text-slate-600 dark:text-white/85 hover:text-accent dark:hover:text-accent font-normal py-1 transition-all duration-300 hover:translate-x-1 no-underline inline-block'}) }}
+							</div>
+						</div>
+
+						<div class="w-full">
+							{% if footerDisplayContactInfo %}
+								<div class="w-full" x-data="{ open: false }">
+									<button @click="open = !open" class="w-full flex items-center justify-between font-heading text-lg font-bold text-slate-900 dark:text-white sm:cursor-default sm:pointer-events-none py-4 sm:py-0 sm:mb-5 bg-transparent border-b border-dashed border-slate-200 dark:border-slate-800 sm:border-none text-left">
+										<span>{{ 'Contact Info'|t }}</span>
+										<svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform sm:hidden text-slate-500" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+									</button>
+									<div :class="{'hidden': !open}" class="hidden sm:block pt-4 pb-6 sm:p-0 mb-6 md:mb-0">
+										<ul class="flex flex-col text-sm p-0 gap-1">
+											{% if generalEntry.Description %}
+												<li class="last-0 list-none mb-2 text-slate-600 dark:text-white/70 leading-relaxed">{{ generalEntry.Description }}</li>
+											{% endif %}
+											{% if generalEntry.email %}
+												<li class="list-none">
+													<a class="text-slate-600 dark:text-white/85 hover:text-accent dark:hover:text-accent font-normal py-1 transition-all duration-300 hover:translate-x-1 no-underline inline-block max-w-full [overflow-wrap:anywhere]" href="mailto:{{ generalEntry.email }}" style="text-decoration: none !important;">{{ generalEntry.email }}</a>
+												</li>
+											{% endif %}
+											{% if generalEntry.phoneNumber %}
+												<li class="list-none">
+													<a class="text-slate-600 dark:text-white/85 hover:text-accent dark:hover:text-accent font-normal py-1 transition-all duration-300 hover:translate-x-1 no-underline inline-block" href="tel:{{ generalEntry.phoneNumber }}" style="text-decoration: none !important;">{{ generalEntry.phoneNumber }}</a>
+												</li>
+											{% endif %}
+										</ul>
+									</div>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col sm:flex-row items-center pb-3 md:pb-4 gap-2 sm:gap-3">
+				{% set cardImg = generalEntry.acceptedCards.one() ?? null %}
+				{% if cardImg %}
+					<div class="text-sm text-slate-700 dark:text-white/70 mb-0">Cards Accepted</div>
+					{% set imgWidth = cardImg.width ?: 187 %}
+					{% set imgHeight = cardImg.height ?: 28 %}
+					{{ images.singleImg(cardImg, imgWidth, {ratio: (imgWidth / imgHeight)}, '') }}
+				{% endif %}
+			</div>
+		</div>
+		<div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-2 sm:mt-0">
+			{% if footerDisplaySocial %}
+				<div class="flex sm:order-2">{% include '_components/social' %}</div>
+			{% endif %}
+			<p class="text-sm text-slate-500 dark:text-white/60 mb-0 sm:order-1">
+				&copy; {{ 'All rights reserved. Made by'|t }}
+				<a class="text-slate-900 dark:text-white no-underline hover:text-accent dark:hover:text-accent" href="https://remoteprogrammer.com/" target="_blank" rel="noopener">RP</a>
+			</p>
+		</div>
+	</div>
+</div>

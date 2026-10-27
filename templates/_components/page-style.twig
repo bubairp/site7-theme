@@ -1,0 +1,16 @@
+{#- Page Style wrapper for detail layouts (_layouts/detail/*.twig), in every design.
+	The editor's Page Style (CMS: background, title, text and block colours, light/dark)
+	must work whatever design is active, so layouts wrap their page in this instead of
+	writing the wrapper themselves:
+
+	  {% embed "_components/page-style" with { owner: entry, pageClass: 'article-page' } %}
+	    {% block body %} … the page … {% endblock %}
+	  {% endembed %}
+
+	owner      the entry whose Page Style field applies (the routed entry; products: the product)
+	pageClass  the page's own class (article-page, portfolio-page, product-page …) -#}
+{% from '_macros/page-style' import psClasses, psStyle, psResponsive %}
+<div class="{{ pageClass }} {{ psClasses(owner.pageStyle) }} entry-{{ owner.id }}-style" style="{{ psStyle(owner.pageStyle) }}" data-theme="{{ (owner.pageStyle.one().themeColor ?? null) ? 'dark' : 'light' }}">
+	{{ psResponsive(owner.pageStyle, '.entry-' ~ owner.id ~ '-style') }}
+	{% block body %}{% endblock %}
+</div>

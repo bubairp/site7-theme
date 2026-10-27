@@ -1,0 +1,76 @@
+{#- Detail layout: casestudy (entries/channels/casestudy.twig).
+	Markup only: a design changes this page's layout by overriding this file
+	(designs/<handle>/templates/_layouts/detail/casestudy.twig). SEO, structured data and
+	the entry lookup stay in entries/channels/casestudy.twig, so their fixes reach every design.
+
+	Variables (layout contract, docs: DESIGN.md "Detail layouts"):
+	  element   the casestudy entry being shown (also as `casestudy`)
+	  entry     the routed entry (Page Style, CP edit link)
+	  plus the site globals every page has: generalEntry, headerEntry, footerEntry
+	A layout may read the element's fields; it never adds fields. -#}
+	{% import "_macros/images" as images %}
+	{% set pageStyle = entry.pageStyle.one() %}
+
+	{% if casestudy %}
+		{% set tags = casestudy.tags.all() %}
+		{% set cover = casestudy.featureImage.one() ?? casestudy.image.one() ?? null %}
+		{% set listing = craft.entries().section('standardPages').slug('casestudies').one() %}
+		{% set listingUrl = listing.url ?? siteUrl('casestudies') %}
+
+		{% embed "_components/page-style" with { owner: entry, pageClass: 'article-page' } %}{% block body %}
+			{% import "_macros/images" as images %}
+
+			{% cache using key 'ch-' ~ casestudy.id ~ '-' ~ casestudy.dateUpdated.timestamp %}
+			{% set eyebrow %}
+				<span class="article-pill">{{ 'Case study'|t }}</span>
+				{% if casestudy.industry %}<span>{{ casestudy.industry }}</span>{% endif %}
+			{% endset %}
+			{% include "_components/article-hero" with {
+				element: casestudy,
+				eyebrow: eyebrow,
+				title: casestudy.title,
+				lead: casestudy.shortDescription,
+				image: cover
+			} %}
+
+			{# At a glance: the facts a reader scans for first #}
+			<div class="container mx-auto px-4">
+				<dl class="article-facts">
+					<div><dt>{{ 'Client'|t }}</dt><dd>{{ casestudy.title }}</dd></div>
+					{% if casestudy.industry %}<div><dt>{{ 'Industry'|t }}</dt><dd>{{ casestudy.industry }}</dd></div>{% endif %}
+					{% if tags|length %}<div><dt>{{ 'Skills'|t }}</dt><dd>{{ tags|map(t => t.title)|join(', ') }}</dd></div>{% endif %}
+					<div><dt>{{ 'Year'|t }}</dt><dd>{{ casestudy.postDate|date('Y') }}</dd></div>
+					{% set lead = (casestudy.projectLead ?? null) ? casestudy.projectLead.one() : null %}
+					{% if lead %}<div><dt>{{ 'Project lead'|t }}</dt><dd><a href="{{ lead.url }}">{{ lead.title }}</a></dd></div>{% endif %}
+				</dl>
+			</div>
+			{% endcache %}
+
+			<div class="article-body">
+				{% include "_includes/matrix-container" with {
+					entry: casestudy,
+					cache_key: 'entry-' ~ casestudy.id
+				} %}
+			</div>
+
+			<div class="container mx-auto px-4">
+				<div class="article-end">
+					<a href="{{ listingUrl }}" class="article-back"><i class="ti ti-arrow-left" aria-hidden="true"></i>{{ 'All case studies'|t }}</a>
+					<div class="article-end-cta">
+						<span>{{ 'Want results like these?'|t }}</span>
+						<a href="{{ siteUrl('contact') }}" class="tw-btn tw-btn-primary tw-btn-sm">{{ 'Start a project'|t }}</a>
+					</div>
+				</div>
+			</div>
+
+			{% cache %}
+			{# Only render the related band when it has something in it #}
+			{% set relatedHtml %}{% include "_components/_casestudies/relatedCaseStudyCarousel.twig" with { casestudy: casestudy } %}{% endset %}
+			{% if relatedHtml|trim|length %}
+				<div class="article-related" style="background-color: {{ (generalEntry.caseStudyBackgroundColor.one().colorcode ?? '')|roleColor }}">
+					<div class="{{ generalEntry.caseRelatedContainerWidth.value|replace({'container-small': 'max-w-4xl mx-auto px-4', 'container': 'container mx-auto px-4'}) }}">{{ relatedHtml }}</div>
+				</div>
+			{% endif %}
+			{% endcache %}
+		{% endblock %}{% endembed %}
+	{% endif %}

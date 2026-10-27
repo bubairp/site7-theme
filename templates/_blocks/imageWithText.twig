@@ -1,0 +1,67 @@
+{% import "_macros/images" as images %}
+{% from '_macros/block-style' import bsClasses, bsStyle, bsResponsive, bsContainer %}
+{% import '_components/ctaButton' as buttons %}
+{% set headingAndContent = block.headingAndContent.one() %}
+{% set blockStyle = block.blockStyle ?? [] %}
+{% set blockType = block.type.handle ?? '' %}
+{% set blockTypeUid = block.uid  ?? '' %}
+
+{% set containerWidth = 'container' %}
+{% set title = block.title ?? '' %}
+{% set heading = block.heading ?? '' %}
+{% set headingTags = block.headingTags ?? 'h2' %}
+{% set align = block.align ?? 'left' %}
+{% set contentData = block.getFieldLayout().getFieldByHandle('contentdata') ? block.contentdata : '' %}
+
+{% set titleTags = block.titleTags ?? 'h2' %}
+
+{% set scopedSel = '.' ~ blockType ~ blockTypeUid ~ '-style' %}
+{% set themeSwitche = null %}
+{% set isImageBorderRadius = block.imageBorderRounded ?? false %}
+
+{% if block.imageContent %}
+	{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
+	{% if blockStyle is defined and blockStyle|length %}
+		{% set blockStyleData = blockStyle.one() %}
+		{% if blockStyleData.background is defined %}
+			{% set backgroundEntry = blockStyleData.background.one() %}
+			{% set themeSwitche = backgroundEntry.themeDark ?? null %}
+		{% endif %}
+	{% endif %}
+
+	{% set isColumnReverse = block.sideSwitch ?? false %}
+
+	{{ bsResponsive(blockStyle, scopedSel) }}
+	<section class="block-section split-section {{ blockType }}{{blockTypeUid}}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
+		<div class="{{ containerWidth }}">
+			{% if headingAndContent %}
+				{% if headingAndContent.heading|length or headingAndContent.Description|length %}
+					{% include "_components/header-content-block" %}
+				{% endif %}
+			{% endif %}
+
+			<div class="split-grid {{ isColumnReverse ? 'is-reversed' : '' }}">
+				<div class="split-media {{ isColumnReverse ? 'lg:order-2' : '' }}">
+					{% if block.imageContent|length %}
+						{{ images.singleImg(block.imageContent.one(), 800, {}, 'split-image w-full ' ~ (isImageBorderRadius ? 'is-rounded' : 'is-square'), {}) }}
+					{% endif %}
+				</div>
+
+				<div class="split-copy {{ isColumnReverse ? 'lg:order-1' : '' }}">
+					<div class="flex flex-col justify-center {{ align == 'center' ? 'items-center text-center' : (align == 'right' ? 'items-end text-right' : 'items-start text-left') }}">
+						{% if block.title %}
+							<{{titleTags}} class="block-heading-title split-title w-full">{{ block.title|e|replace({'{': '<em>', '}': '</em>'})|raw }}</{{titleTags}}>
+						{% endif %}
+
+						<div class="block-description split-text tw-rich-text w-full">{{ block.textContent }}</div>
+
+						{% set imageTextBtn = block.button is defined ? block.button : null %}
+						{% if imageTextBtn|length %}
+							<div class="flex flex-wrap items-center gap-4 pt-2 lg:pt-4">{{ buttons.renderButton(imageTextBtn) }}</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endif %}

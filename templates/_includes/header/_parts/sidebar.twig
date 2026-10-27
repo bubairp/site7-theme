@@ -1,0 +1,96 @@
+{#
+	Off-canvas sidebar menu (overlay + panel). Must be rendered inside an element
+	with x-data="sidebarMenu" and OUTSIDE .headerMain (its backdrop-filter would
+	otherwise become the containing block for these fixed elements).
+
+	Params (all optional):
+	  variant    'dark' (headerWithSidebarMenu: the desktop sidebar, all sizes) or
+	             'light' (mobile menu of the other headers; hidden from lg up).
+	             Both share the Parchment panel (DESIGN.md §6); the desktop one is
+	             wider and sets its top-level items in the serif face.
+	  menus      menu handles to render, in order (default ['headerMenu'])
+	  showCta    also show the header CTA button at the bottom
+	Uses from context: generalEntry, siteName, headerDisplayPhone/Email/Social/CTA, headerButton
+#}
+{% import '_components/ctaButton' as buttons %}
+{% set variant = variant ?? 'dark' %}
+{% set isMobileMenu = variant == 'light' %}
+{% set menus = menus ?? ['headerMenu'] %}
+{% set showCta = showCta ?? false %}
+{% set mobileOnly = isMobileMenu ? 'lg:hidden' : '' %}
+{# Mobile menu slides in from the left; the desktop sidebar from the right #}
+{% set side = isMobileMenu
+	? { pos: 'left-0', off: '-translate-x-full' }
+	: { pos: 'right-0', off: 'translate-x-full' } %}
+
+<!-- Sidebar Overlay -->
+<div x-show="sidebarOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="sidebar-overlay-premium fixed inset-0 z-[1040] {{ mobileOnly }}" x-cloak @click="sidebarOpen = false"></div>
+
+<!-- Sidebar Panel -->
+<div x-show="sidebarOpen"
+	x-transition:enter="transition-transform ease-out duration-300" x-transition:enter-start="{{ side.off }}" x-transition:enter-end="translate-x-0"
+	x-transition:leave="transition-transform ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="{{ side.off }}"
+	@keydown.escape.window="sidebarOpen = false"
+	{% if isMobileMenu %}@resize.window.debounce.150ms="if (window.innerWidth >= 1024) sidebarOpen = false"{% endif %}
+	class="sidebar-light {{ isMobileMenu ? '' : 'sidebar-editorial' }} fixed top-0 {{ side.pos }} z-[1050] flex flex-col transform h-[100dvh] {{ mobileOnly }}"
+	id="offcanvasRight" role="dialog" aria-modal="true" aria-label="{{ 'Menu'|t }}" data-lenis-prevent x-cloak>
+	{# Fixed compact bar (sidebar-menu.css). Not tied to the header height: that includes
+	   the header's CMS spacing and glass padding and made this bar too tall. #}
+	<div class="sidebar-top flex shrink-0 justify-between items-center">
+		<a class="menu-brand shrink-0" href="/">
+			<span class="logo text-accent shrink-0">
+				{% if generalEntry.logo.one() ?? null %}<img src="{{ generalEntry.logo.one().url }}" alt="{{ generalEntry.companyName ?: siteName }}" class="w-auto h-8">{% else %}<span class="text-xl font-bold">{{ siteName }}</span>{% endif %}
+			</span>
+		</a>
+		<button type="button" @click="sidebarOpen = false" class="sidebar-close-btn group" aria-label="{{ 'Close menu'|t }}">
+			<i class="ti ti-x text-xl transform group-hover:rotate-90 transition-transform duration-300"></i>
+		</button>
+	</div>
+
+	<nav class="sidebar-nav flex-1 overflow-y-auto overscroll-contain" id="sidebarNav" aria-label="{{ 'Main navigation'|t }}">
+		{% if not isMobileMenu %}<span class="sidebar-eyebrow">{{ 'Menu'|t }}</span>{% endif %}
+		{% for menuHandle in menus %}
+			{{ craft.simplerpmenu.getRpMenuHTML(menuHandle, {
+				'menu-id': 'sidebar-' ~ menuHandle,
+				'menu-class': 'sidebar-rp-menu sidebar-menu',
+				'ul-class': 'menu-ul flex flex-col p-0 m-0',
+				'li-class': '',
+				'sub-menu-ul-class': 'sub-menu-ul dropdown-menu',
+				'link-class': 'nav-link',
+			}) }}
+		{% endfor %}
+	</nav>
+
+	{# CTA + contact pinned to the bottom of the panel #}
+	{% set hasCta = showCta and headerDisplayCTA and headerButton %}
+	{% set hasPhone = headerDisplayPhone and generalEntry.phoneNumber %}
+	{% set hasEmail = (headerDisplayEmail or not isMobileMenu) and generalEntry.email %}
+	{% if hasCta or hasPhone or hasEmail or headerDisplaySocial %}
+		<div class="sidebar-foot shrink-0 flex flex-col gap-4">
+			{% if hasPhone or hasEmail %}
+				<div class="flex flex-col gap-1">
+					{% if hasPhone %}
+						<a class="sidebar-contact-link" href="tel:{{ generalEntry.phoneNumber }}">
+							<span class="sidebar-contact-icon"><i class="ti ti-phone text-lg"></i></span>
+							{{ generalEntry.phoneNumber }}
+						</a>
+					{% endif %}
+					{% if hasEmail %}
+						<a class="sidebar-contact-link break-all" href="mailto:{{ generalEntry.email }}">
+							<span class="sidebar-contact-icon"><i class="ti ti-mail text-lg"></i></span>
+							{{ generalEntry.email }}
+						</a>
+					{% endif %}
+				</div>
+			{% endif %}
+			{% if headerDisplaySocial %}
+				<div class="social-items flex {{ isMobileMenu ? 'justify-center' : 'justify-start' }}">
+					{% include '_components/social' with { sizeClass: 'w-9 h-9', iconSize: 16 } %}
+				</div>
+			{% endif %}
+			{% if hasCta %}
+				{{ buttons.renderButton(headerButton, {}, 'w-full justify-center') }}
+			{% endif %}
+		</div>
+	{% endif %}
+</div>

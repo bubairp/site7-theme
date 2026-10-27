@@ -1,0 +1,89 @@
+{% extends "_layouts/entry" %}
+{% import "_macros/images" as images %}
+{# Author page: same structure as a team member page. Standard banner (the author's own
+   Banner slides if any, otherwise name, designation and Feature Image), the shared
+   profile, books and writing, then the page builder. #}
+{% set author = craft.entries()
+    .section('authors')
+    .slug(craft.app.request.segment(2))
+    .one() %}
+
+{% set pageStyle = entry.pageStyle.one() ?? null %}
+
+{# There is no /authors index page, so the breadcrumb skips the section link #}
+{% set bannerFallback = author ? {
+	heading: author.title,
+	description: author.highlightText ?? null,
+	media: author.featureImage.one() ?? null,
+	layout: 'sliderLayout3',
+	crumbs: { hideSectionLink: true },
+} : null %}
+
+{% block header_banner %}
+	{% if author %}
+		{% cache using key 'author-hero-' ~ author.id ~ '-' ~ author.dateUpdated.timestamp %}
+		{% set standardBannerSliders = (author.standardBannerSlider ?? null) ? author.standardBannerSlider.all() : [] %}
+		<div class="header-banner">
+			{% include "_includes/page-banner/standard-banner" %}
+		</div>
+		{% endcache %}
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+	{% if author %}
+		{% set themeSwitche = pageStyle.themeColor ?? null %}
+		{% from '_macros/page-style' import psClasses, psStyle, psResponsive %}
+
+		<div class="{{ psClasses(entry.pageStyle) }} entry-{{ entry.id }}-style" style="{{ psStyle(entry.pageStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}">{{ psResponsive(entry.pageStyle, '.entry-' ~ entry.id ~ '-style') }}
+			{% cache using key 'author-profile-' ~ author.id ~ '-' ~ author.dateUpdated.timestamp %}
+			{# Bio: the short description, then the long Biography (editorFull) when filled #}
+			{% set bio %}
+				{% if author.shortDescription|length %}<p>{{ author.shortDescription|nl2br }}</p>{% endif %}
+				{% if author.editorFull|length %}{{ author.editorFull|raw }}{% endif %}
+			{% endset %}
+
+			{# Author Info items: small facts (icon, title, text) under the bio #}
+			{% set infoItems = (author.authorInfoItems ?? null) ? author.authorInfoItems.all() : [] %}
+			{% set extra %}
+				{% if infoItems|length %}
+					<ul class="person-facts">
+						{% for item in infoItems %}
+							<li class="person-fact">
+								<span class="person-fact-icon" aria-hidden="true">
+									{% if item.iconImage ? item.iconImage|length : false %}
+										{{ images.singleImg(item.iconImage.one(), 32, {}, 'w-5 h-5 object-contain', { width: 20, height: 20 }) }}
+									{% elseif item.iconClass|length %}
+										<i class="{{ item.iconClass|icon }}"></i>
+									{% else %}
+										<i class="ti ti-award"></i>
+									{% endif %}
+								</span>
+								<span>
+									<strong>{{ item.title }}</strong>
+									{% if item.description %}<small>{{ item.description }}</small>{% endif %}
+								</span>
+							</li>
+						{% endfor %}
+					</ul>
+				{% endif %}
+			{% endset %}
+
+			{% include "_includes/people/profile" with {
+				person: author,
+				photo: author.image.one() ?? null,
+				role: author.highlightText ?? null,
+				bio: bio|trim,
+				extra: extra|trim,
+			} %}
+
+			{% include "_includes/matrix-container" with {
+				entry: author,
+				cache_key: 'entry-' ~ author.id
+			} %}
+			{% endcache %}
+
+			{% include "_includes/people/works" with { person: author } %}
+		</div>
+	{% endif %}
+{% endblock %}

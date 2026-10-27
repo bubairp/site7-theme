@@ -1,0 +1,19 @@
+{# Blog categories are a category group; list only the ones that have posts #}
+{% set categories = craft.entries().section('blogCategories').relatedTo({ sourceElement: craft.entries().section('blogs').ids(), field: 'blogCategories' }).all() %}
+{% set selectedCategory = craft.app.request.getParam('category') %}
+{% set searchTerm = craft.app.request.getParam('search')|trim %}
+{# Submit back to the current listing page rather than a hardcoded "/blogs"
+   (that URL does not exist on this site and 404s). #}
+{% set currentUrl = siteUrl(craft.app.request.pathInfo) %}
+
+{# Markup: _components/listing-filter.twig (shared with the other listing; a design overrides that file) #}
+{% include "_components/listing-filter" with {
+	formName: 'blogSearch',
+	placeholder: 'Search articles'|t,
+	selectClass: 'blog-filter-select',
+	searchLabelClass: 'hidden sm:inline',
+	categories: categories,
+	selectedCategory: selectedCategory,
+	searchTerm: searchTerm,
+	currentUrl: currentUrl,
+} only %}

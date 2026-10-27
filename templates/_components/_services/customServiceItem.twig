@@ -1,0 +1,21 @@
+{% import "_macros/images" as images %}
+
+{% set link = item.linkUrl ?? null %}
+{% set tag = link ? 'a' : 'div' %}
+{% set align = (cardAlignClass ?? 'text-left')|replace({'text-start': 'text-left', 'text-end': 'text-right'}) %}
+{% set iconAlign = 'center' in align ? 'mx-auto' : ('right' in align ? 'ms-auto' : '') %}
+
+<{{ tag }} {% if link %}href="{{ link.url ~ (link.urlSuffix ?? '') }}" {% if link.target %}target="{{ link.target }}"{% endif %}{% endif %} class="service-card group {{ align }}">
+	{% if item.image|length %}
+		<span class="service-card-icon {{ iconAlign }}">{{ images.singleImg(item.image.0, 56, {'ratio': 1}, 'w-full h-full object-contain') }}</span>
+	{% elseif item.badgeText|length %}
+		<span class="service-card-eyebrow">{{ item.badgeText }}</span>
+	{% endif %}
+	<h3 class="service-card-title">{{ item.plainText }}</h3>
+	{% if item.Description|length %}
+		<div class="service-card-text tw-rich-text">{{ item.Description }}</div>
+	{% endif %}
+	{% if link %}
+		<span class="service-card-link">{{ link.label|default('Learn more'|t) }}<i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+	{% endif %}
+</{{ tag }}>

@@ -1,0 +1,50 @@
+{% import "_macros/images" as images %}
+{% import '_components/ctaButton' as buttons %}
+
+<div x-data="sidebarMenu">
+	<div class="headerMain {{ headerClasses }} {{ headerPositioning }} sticky w-full z-[1030] bg-white/95 dark:bg-dark/95 backdrop-blur-xl transition-all duration-300" {% if themeSwitche %} data-theme="dark" {% else %} data-theme="light" {% endif %}>
+		{% if headerDisplayThinbar %}
+			<div class="header-top bg-accent py-1 text-on-dark">
+				<div class="container text-center text-sm">{{ generalEntry.headerNotification }}</div>
+			</div>
+		{% endif %}
+		<!-- Navbar -->
+		<div class="header-main flex flex-wrap bg-transparent py-2 lg:py-3">
+			{# .header-panel is the header's container (Header > Container Width). It holds the bar
+			   row and, where there is one, the search field, so the Floating glass option can
+			   style them as one box (components/header.css). Unstyled for "Solid bar". #}
+			<div class="header-panel {{ headerContainerWidth }}">
+				<div class="w-full h-full flex items-center justify-between">
+					<div class="logo shrink-0">
+						<a href="/" class="menu-brand lg:pe-3 shrink-0 lg:flex-1 lg:flex">
+							<span class="logo text-accent shrink-0 lg:me-2">
+								{% include "_includes/header/_parts/logo" %}
+							</span>
+						</a>
+					</div>
+					<div
+						class="flex items-center gap-4">
+						<!-- Phone -->
+						{% if headerDisplayPhone %}
+							<div class="hidden md:block">
+								<a class="nav-link font-normal px-0 py-1" href="tel:{{ generalEntry.phoneNumber }}">{{ generalEntry.phoneNumber }}</a>
+							</div>
+						{% endif %}
+
+						<button @click="sidebarOpen = true" id="sidebarMenuToggle" :aria-expanded="sidebarOpen ? 'true' : 'false'" class="flex items-center justify-center w-10 h-10 rounded-full border-none bg-transparent hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors" type="button" aria-label="Toggle navigation">
+							<span class="hamburger-icon">
+								<span class="bar bar-1"></span>
+								<span class="bar bar-2"></span>
+								<span class="bar bar-3"></span>
+							</span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# Overlay + panel live OUTSIDE headerMain to escape its containing block #}
+	{% include '_includes/header/_parts/sidebar' with { variant: 'dark', showCta: true } %}
+</div>
+<div class="header-height min-h-[var(--header-height,100px)]"></div>

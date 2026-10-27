@@ -1,0 +1,27 @@
+{# The slide's check list. When every item is written "figure | label" (e.g. "140+ |
+   Sites launched") it is a stats row: a Fraunces figure over a small label, split by
+   hairlines. Otherwise it is a tick list (an item's icon replaces the tick).
+   Expects: items (check list rows). #}
+{% if items|length %}
+	{% set isStats = items|filter(i => '|' in (i.title ?? ''))|length == items|length %}
+	{% if isStats %}
+		<ul class="hero-stats">
+			{% for stat in items %}
+				{% set parts = stat.title|split('|') %}
+				<li class="hero-stat">
+					<span class="hero-stat-figure">{{ parts[0]|trim }}</span>
+					<span class="hero-stat-label">{{ parts|slice(1)|join('|')|trim }}</span>
+				</li>
+			{% endfor %}
+		</ul>
+	{% else %}
+		<ul class="check-list hero-check-list">
+			{% for item in items %}
+				<li {% if item.iconClass ?? false %}class="has-icon"{% endif %}>
+					{% if item.iconClass ?? false %}<i class="{{ item.iconClass|icon }}" aria-hidden="true"></i>{% endif %}
+					{{ item.title }}
+				</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{% endif %}

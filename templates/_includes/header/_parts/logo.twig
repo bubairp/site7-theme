@@ -1,0 +1,11 @@
+{# Header bar logo. An SVG logo is printed inline (Craft's svg() sanitises it) so CSS can
+   recolour it, e.g. the floating glass header over a photo shows it light
+   (components/header.css). Other formats stay an <img>. #}
+{% set logoAsset = generalEntry.logo.one() ?? null %}
+{% if logoAsset and logoAsset.extension|lower == 'svg' %}
+	{{ svg(logoAsset)|attr({ class: 'header-logo-svg w-auto h-8 lg:h-9', width: false, height: false, role: 'img', 'aria-label': siteName }) }}
+{% elseif logoAsset %}
+	<img src="{{ logoAsset.url }}" alt="{{ siteName }}" class="w-auto h-8 lg:h-9">
+{% else %}
+	<span class="text-xl font-bold">{{ siteName }}</span>
+{% endif %}

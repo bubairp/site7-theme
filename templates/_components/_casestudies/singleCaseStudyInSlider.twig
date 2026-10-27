@@ -1,0 +1,4 @@
+{% set casestudy = casestudy ?? caseStudy ?? null %}
+<div class="swiper-slide h-auto pb-1">
+	{% include "_components/_casestudies/caseStudyCard" with { casestudy: casestudy } %}
+</div>

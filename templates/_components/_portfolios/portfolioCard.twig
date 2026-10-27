@@ -1,0 +1,19 @@
+{% import "_macros/images" as images %}
+{# Image-led project card: the photo carries it, the title sits underneath. #}
+{% set portCats = portfolio.portfolioCategories.all() %}
+<div class="project-card group relative">
+	<div class="project-card-media">
+		{% if portfolio.image|length %}
+			{{ images.singleImg(portfolio.image.0, 800, {'ratio': 1.333}, 'w-full h-full object-cover', { alt: portfolio.title }) }}
+		{% endif %}
+		<span class="project-card-arrow" aria-hidden="true"><i class="ti ti-arrow-up-right"></i></span>
+	</div>
+	<div class="project-card-body">
+		<h3 class="project-card-title">
+			<a href="{{ portfolio.url }}" class="after:absolute after:inset-0" aria-label="{{ portfolio.title }} — {{ 'View project'|t }}">{{ portfolio.title }}</a>
+		</h3>
+		{% if portCats|length %}
+			<p class="project-card-meta">{{ portCats|map(c => c.title)|join(' · ') }}</p>
+		{% endif %}
+	</div>
+</div>

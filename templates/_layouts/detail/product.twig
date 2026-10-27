@@ -1,0 +1,237 @@
+{#- Detail layout: product (entries/channels/product.twig).
+	Markup only: a design changes this page's layout by overriding this file
+	(designs/<handle>/templates/_layouts/detail/product.twig). SEO, structured data and
+	the entry lookup stay in entries/channels/product.twig, so their fixes reach every design.
+
+	Variables (layout contract, docs: DESIGN.md "Detail layouts"):
+	  element   the product entry being shown (also as `product`)
+	  entry     the routed entry (Page Style, CP edit link)
+	  plus the site globals every page has: generalEntry, headerEntry, footerEntry
+	A layout may read the element's fields; it never adds fields. -#}
+{% import "_macros/images" as images %}
+{% import "_macros/ratings" as ratings %}
+{% import '_components/ctaButton' as buttons %}
+{% import '_macros/price' as prices %}
+	{# Reviews: the product's "Show reviews" switch and the site-wide review setting #}
+	{% set showReviews = (product.showReviews ?? true) and generalEntry.displayProductReview is defined and generalEntry.displayProductReview|length %}
+	{% if product %}
+		{% set pageStyle = product.pageStyle.one() %}
+
+		{# Specifications: the Product Features rows (a legacy "Price" row is the price, not a spec) #}
+		{% set specRows = [] %}
+		{% for row in featureItems %}
+			{% if not prices.isPriceRow(row)|trim %}
+				{% set specRows = specRows|merge([{ label: (row.item ?? row.col1 ?? '')|trim|trim(':', 'right'), value: row.quantity ?? row.col2 ?? '' }]) %}
+			{% endif %}
+		{% endfor %}
+		{# Book details, only for the Book type (the author is the byline under the title) #}
+		{% set bookMeta = isBook ? [
+			(product.bookFormat ?? null) ? { label: 'Format'|t, value: product.bookFormat, icon: 'book-2' } : null,
+			(product.pageCount ?? null) ? { label: 'Pages'|t, value: product.pageCount, icon: 'files' } : null,
+			(product.publishDate ?? null) ? { label: 'Published'|t, value: product.publishDate|date('F Y'), icon: 'calendar' } : null,
+			(product.publisher ?? null) ? { label: 'Publisher'|t, value: product.publisher, icon: 'building' } : null,
+			(product.isbn ?? null) ? { label: 'ISBN'|t, value: product.isbn, icon: 'barcode' } : null,
+		]|filter(v => v) : [] %}
+		{% set shopPage = craft.entries().section('standardPages').slug('products').one() %}
+		{% set shopUrl = shopPage.url ?? siteUrl('products') %}
+
+		{% embed "_components/page-style" with { owner: product, pageClass: 'product-page' } %}{% block body %}
+			{% import "_macros/images" as images %}
+			{% import "_macros/ratings" as ratings %}
+			{% import '_components/ctaButton' as buttons %}
+			{% import '_macros/price' as prices %}
+
+			<section class="product-hero">
+				<div class="container mx-auto px-4">
+					{% include "_components/breadcrumbs" with { element: product, hideSectionLink: true, inline: true } %}
+
+					<div class="product-grid">
+						{# Gallery: main slider with thumbnails, lightbox on click (.gallery) #}
+						<div class="product-gallery">
+							{% if productImages|length > 1 %}
+								<div class="swiper gallery product-main main-swiper-{{ product.id }}" data-swiper-options='{ "loop": true, "spaceBetween": 16, "navigation": { "nextEl": ".swiper-button-next-{{ product.id }}", "prevEl": ".swiper-button-prev-{{ product.id }}" }, "thumbs": { "swiper": "#thumbs-swiper-{{ product.id }}" } }'>
+									<div class="swiper-wrapper h-full">
+										{% for image in productImages %}
+											{% if image %}
+												<div class="swiper-slide h-full">
+													<a class="gallery-item product-zoom group" href="{{ image.url }}" aria-label="{{ 'View larger image'|t }}">
+														{{ images.singleImg(image, 1000, {'ratio': 1}, 'w-full h-full object-cover') }}
+														<span class="product-zoom-icon" aria-hidden="true"><i class="ti ti-arrows-maximize"></i></span>
+													</a>
+												</div>
+											{% endif %}
+										{% endfor %}
+									</div>
+									<button type="button" class="swiper-button-next swiper-button-next-{{ product.id }} product-nav" aria-label="{{ 'Next image'|t }}"></button>
+									<button type="button" class="swiper-button-prev swiper-button-prev-{{ product.id }} product-nav" aria-label="{{ 'Previous image'|t }}"></button>
+								</div>
+
+								<div id="thumbs-swiper-{{ product.id }}" thumbsslider="" class="swiper product-thumbs" data-swiper-options='{ "loop": false, "spaceBetween": 12, "slidesPerView": 5, "freeMode": true, "watchSlidesProgress": true }'>
+									<div class="swiper-wrapper">
+										{% for image in productImages %}
+											{% if image %}
+												<div class="swiper-slide product-thumb">
+													{{ images.singleImg(image, 200, {'ratio': 1}, 'w-full h-full object-cover') }}
+												</div>
+											{% endif %}
+										{% endfor %}
+									</div>
+								</div>
+							{% elseif productImages|length == 1 %}
+								<div class="gallery product-main">
+									<a class="gallery-item product-zoom group" href="{{ productImages[0].url }}" aria-label="{{ 'View larger image'|t }}">
+										{{ images.singleImg(productImages[0], 1000, {'ratio': 1}, 'w-full h-full object-cover') }}
+										<span class="product-zoom-icon" aria-hidden="true"><i class="ti ti-arrows-maximize"></i></span>
+									</a>
+								</div>
+							{% endif %}
+						</div>
+
+						{# Details #}
+						<div class="product-info">
+							{% if category %}
+								<a href="{{ shopUrl }}?category={{ category.slug }}" class="article-pill">{{ category.title }}</a>
+							{% endif %}
+
+							<h1 class="product-title">{{ product.title }}</h1>
+
+							{% if author %}
+								{% set authorPhoto = (author.image ?? null) ? author.image.one() : null %}
+								<a href="{{ author.url }}" class="product-byline">
+									<span class="product-byline-avatar" aria-hidden="true">{% if authorPhoto %}{{ images.singleImg(authorPhoto, 72, {'ratio': 1}, '', { alt: '' }) }}{% else %}{{ author.title|slice(0, 1) }}{% endif %}</span>
+									<span>{{ 'by'|t }} <strong>{{ author.title }}</strong></span>
+								</a>
+							{% endif %}
+
+							{% if showReviews %}
+							<div class="product-rating">
+								<span class="product-stars">{{ ratings.stars(averageRating, '16px') }}</span>
+								<a href="#reviews-section" data-scroll data-scroll-offset="80">
+									{% if reviewCount %}{{ averageRating }} · {{ '{count, plural, =1{# review} other{# reviews}}'|t('site', { count: reviewCount }) }}{% else %}{{ 'Be the first to review'|t }}{% endif %}
+								</a>
+							</div>
+							{% endif %}
+
+							{% set priceHtml = prices.render(product, 'product-price') %}
+							{% if priceHtml|trim|length %}
+								<div class="product-price-row">{{ priceHtml }}</div>
+							{% endif %}
+
+							{% if product.productDiscription|length %}
+								<div class="product-lead">{{ product.productDiscription|raw|nl2br }}</div>
+							{% endif %}
+
+							{% if bookMeta|length %}
+								<dl class="book-details" aria-label="{{ 'Book details'|t }}">
+									{% for m in bookMeta %}
+										<div class="book-detail">
+											<i class="ti ti-{{ m.icon }}" aria-hidden="true"></i>
+											<dt>{{ m.label }}</dt>
+											<dd>{{ m.value }}</dd>
+										</div>
+									{% endfor %}
+								</dl>
+							{% endif %}
+
+							<div class="product-actions">
+								{% if productButton|length %}
+									{{ buttons.renderButton(productButton, {}, 'tw-btn-lg product-buy') }}
+								{% endif %}
+								{% if product.switchOn %}
+									<button class="product-share" type="button" aria-label="{{ 'Share'|t }}" onclick="if(navigator.share){ navigator.share({ title: '{{ product.title|escape('js') }}', url: window.location.href }); } else { navigator.clipboard.writeText(window.location.href); this.classList.add('is-copied'); setTimeout(() => this.classList.remove('is-copied'), 1600); }">
+										<i class="ti ti-share" aria-hidden="true"></i><span class="product-share-done">{{ 'Link copied'|t }}</span>
+									</button>
+								{% endif %}
+							</div>
+
+							{% if product.tags|length %}
+								<ul class="product-tags" aria-label="{{ 'Tags'|t }}">
+									{% for tag in product.tags.all() %}<li>{{ tag.title }}</li>{% endfor %}
+								</ul>
+							{% endif %}
+
+							{% if specRows|length and (product.showSpecifications ?? true) %}
+								<div class="product-specs">
+									<h2 class="product-specs-title">{{ isBook ? 'Book specifications'|t : 'Specifications'|t }}</h2>
+									<dl>
+										{% for row in specRows %}
+											<div><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>
+										{% endfor %}
+									</dl>
+								</div>
+							{% endif %}						</div>
+					</div>
+				</div>
+			</section>
+
+			{# About the author (books) #}
+			{% if author %}
+				{% set authorImg = author.image.one() ?? null %}
+				<section class="block-section product-author">
+					<div class="container mx-auto px-4">
+						<div class="product-author-card">
+							{% if authorImg %}
+								<a href="{{ author.url }}" class="shrink-0">{{ images.singleImg(authorImg, 160, {'ratio': 1}, 'product-author-photo') }}</a>
+							{% endif %}
+							<div>
+								<span class="section-eyebrow">{{ 'About the author'|t }}</span>
+								<h2 class="product-author-name"><a href="{{ author.url }}">{{ author.title }}</a></h2>
+								{% if author.shortDescription is defined and author.shortDescription|length %}
+									<div class="product-author-text">{{ author.shortDescription }}</div>
+								{% endif %}
+								<a href="{{ author.url }}" class="service-card-link">{{ 'View profile & books'|t }}<i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+							</div>
+						</div>
+					</div>
+				</section>
+			{% endif %}
+
+			{# Product story (page-builder blocks) #}
+			<div class="product-story">
+				{% include "_includes/matrix-container" with {
+					entry: product,
+					cache_key: 'entry-' ~ product.id
+				} %}
+			</div>
+
+			{# Highlight quote #}
+			{% if product.highlightQuote|length %}
+				<section class="product-quote" data-theme="dark">
+					<div class="container mx-auto px-4">
+						<figure>
+							<span class="testimonial-mark" aria-hidden="true">&ldquo;</span>
+							<blockquote>{{ product.highlightQuote }}</blockquote>
+							<figcaption>{{ product.title }}</figcaption>
+						</figure>
+					</div>
+				</section>
+			{% endif %}
+
+			{# Reviews #}
+			{% if showReviews %}
+				<section id="reviews-section" class="block-section product-reviews">
+					<div class="container mx-auto px-4">
+						{% include "_components/comments.twig" with { commentHandler: 'productReview', activeUserReply: generalEntry.activeUserReplyProduct, pageStyle: pageStyle, feedbackTitle: 'Customer reviews' } %}
+					</div>
+				</section>
+			{% endif %}
+
+			{# Related products: only rendered when there is something to show #}
+			{% if product.showRelated ?? true %}
+			{% cache %}
+			{% set relatedHtml %}{% include "_components/_products/relatedProductCarousel.twig" with { product: product } %}{% endset %}
+			{% if relatedHtml|trim|length %}
+				<section class="article-related">
+					<div class="container mx-auto px-4">
+						<div class="section-head is-left related-head">
+							<span class="section-eyebrow">{{ 'Keep browsing'|t }}</span>
+							<h2 class="block-heading-title section-title">{{ 'You may also like'|t }}</h2>
+						</div>
+						{{ relatedHtml }}
+					</div>
+				</section>
+			{% endif %}
+			{% endcache %}
+			{% endif %}
+		{% endblock %}{% endembed %}
+	{% endif %}

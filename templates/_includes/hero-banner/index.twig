@@ -1,0 +1,8 @@
+{# Home hero: the page's Banner Layout picks one of three arrangements (DESIGN.md §8).
+   Shared parts: _copy (text and buttons), _list (check list / stats), _media and
+   _media-pair (image, video file or embedded video, with an optional mobile asset).
+   Expects: heroBannerSliders (the page's Hero Banner Slider entries). #}
+{% set bannerLayout = entry.bannerLayout.value ?? '' %}
+{% if heroBannerSliders|length and bannerLayout in ['sliderLayout1', 'sliderLayout2', 'sliderLayout3'] %}
+	{% include "_includes/hero-banner/" ~ bannerLayout %}
+{% endif %}

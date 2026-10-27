@@ -1,0 +1,225 @@
+{% import "_macros/images" as images %}
+{% from '_macros/block-style' import bsClasses, bsStyle, bsResponsive, bsContainer %}
+{% set generalEntry = craft.entries()
+    .section('general')
+    .type('general')
+    .with(['button', 'background', 'spacing'])
+    .one() 
+%}
+
+{% set form_id = block.selectForm.id  %}
+{% set headingAndContent = block.headingAndContent.one() %}
+{% set blockStyle = block.blockStyle ?? [] %}
+{# {% set blockType = block.type.handle ?? 'image' %} #}
+{% set contactPageLayout = block.contactPageLayout ?? [] %}
+{% set containerWidth = "container" %}
+
+{% set title = block.title ?? '' %}
+{% set heading = block.heading ?? '' %}
+{% set headingTags = block.headingTags ?? 'h2' %}
+{% set align = block.align ?? 'left' %}
+{% set contentData = block.getFieldLayout().getFieldByHandle('contentdata') ? block.contentdata : '' %}
+{% set blockType = block.type.handle ?? '' %}
+{% set blockTypeUid = block.uid  ?? '' %}
+
+{# {% dd(generalEntry) %} #}
+
+<!-- images -->
+	{% if contactPageLayout|length %}
+	{% set scopedSel = '.' ~ blockType ~ blockTypeUid ~ '-style' %}
+	{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
+	{% set themeSwitche = null %}
+		{% if blockStyle is defined and blockStyle|length %}
+		{% set blockStyleData = blockStyle.one() %}
+			{% if blockStyleData.background is defined %}
+			{% set backgroundEntry = blockStyleData.background.one() %}
+		{% set themeSwitche = backgroundEntry.themeDark ?? null %}
+	{% endif %}
+	{% endif %}
+
+
+	{% set formBackgroundColorClass = (block.formColor.one().colorcode ?? '')|roleColor %}
+		{% if formBackgroundColorClass %}
+		{% css %}
+		.form-style {
+			background:{{formBackgroundColorClass|raw}}
+		!important;
+		}
+	{% endcss %}
+	{% endif %}
+
+	{% set contactBoxBackgroundColorClass = (block.contactBoxBackground.one().colorcode ?? '')|roleColor %}
+		{% if contactBoxBackgroundColorClass %}
+		{% css %}
+		.contentBox-style {
+			background:{{contactBoxBackgroundColorClass|raw}}
+		!important;
+		}
+	{% endcss %}
+	{% endif %}
+
+	{% set contactBoxTitleColorClass = (block.contactBoxTitleColor.one().colorcode ?? '')|roleColor %}
+		{% if contactBoxTitleColorClass %}
+		{% css %}
+		.contentBoxTitle-style {
+			color:{{contactBoxTitleColorClass|raw}}
+		!important;
+		}
+	{% endcss %}
+	{% endif %}
+
+	{% set contactBoxTextColorClass = (block.contactBoxTextColor.one().colorcode ?? '')|roleColor %}
+		{% if contactBoxTextColorClass %}
+		{% css %}
+		.contentBoxText-style {
+			color:{{contactBoxTextColorClass|raw}}
+		!important;
+		}
+	{% endcss %}
+	{% endif %}
+
+	{% set isformBackground = block.formBackground ?? false %}
+	{% set isformBorderRadius = block.formBorderRadius ?? false %}
+	{% set iscontactBoxBorderRadius = block.contactBoxBorderRadius ?? false %}
+
+	{{ bsResponsive(blockStyle, scopedSel) }}
+		<div class="image-content-block block-section {{ blockType }}{{blockTypeUid}}-style {{ bsClasses(blockStyle) }}" style="{{ bsStyle(blockStyle) }}"> <div class="{{ containerWidth }}">
+			{% if headingAndContent %}
+				{% if headingAndContent.heading|length or  headingAndContent.Description|length %}
+					{% include "_components/header-content-block" %}
+				{% endif %}
+			{% endif %}
+
+			{% set contactPageLayout = block.contactPageLayout.value ?? '' %}
+			{% if contactPageLayout == 'contactLayout1' %}
+
+				<div
+					class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 pb-6 sm:pb-6 lg:pb-12">
+					<!-- Address -->
+					{% if block.showAddress|length %}
+						<div>
+							<div class="flex flex-col tw-card h-full {{ iscontactBoxBorderRadius ? 'rounded-2xl md:rounded-3xl' : 'rounded-none' }}">
+								<div class="flex-1 p-6">
+									<h4 class="text-xl font-bold mb-4 contentBoxTitle-style text-gray-900 dark:text-white flex items-center gap-2">
+										<i class="ti ti-map-pin text-accent"></i>
+										Address</h4>
+									<div class="text-base lg:text-lg font-medium pb-3 mb-3 contentBoxText-style text-gray-600 dark:text-gray-300">{{ generalEntry.Description }}</div>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+
+					<!-- Phone -->
+					{% if block.showPhone|length %}
+						<div>
+							<div class="flex flex-col tw-card h-full {{ iscontactBoxBorderRadius ? 'rounded-2xl md:rounded-3xl' : 'rounded-none' }}">
+								<div class="flex-1 p-6">
+									<h4 class="text-xl font-bold mb-4 contentBoxTitle-style text-gray-900 dark:text-white flex items-center gap-2">
+										<i class="ti ti-phone text-accent"></i>
+										Phone</h4>
+									<ul class="list-none mb-0 p-0 contentBoxText-style">
+										<li class="pb-1 mb-2">
+											<span class="block text-sm opacity-80 mb-1 contentBoxText-style text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Main office</span>
+											<a href="tel:{{ generalEntry.phoneNumber }}" class="text-base lg:text-lg font-bold p-0 no-underline hover:text-accent contentBoxText-style text-gray-900 dark:text-gray-100">{{ generalEntry.phoneNumber }}</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+
+					<!-- Email -->
+					{% if block.showEmail|length %}
+						<div>
+							<div class="flex flex-col tw-card h-full {{ iscontactBoxBorderRadius ? 'rounded-2xl md:rounded-3xl' : 'rounded-none' }}">
+								<div class="flex-1 p-6">
+									<h4 class="text-xl font-bold mb-4 contentBoxTitle-style text-gray-900 dark:text-white flex items-center gap-2">
+										<i class="ti ti-mail text-accent"></i>
+										Email</h4>
+									<ul class="list-none mb-0 p-0 contentBoxText-style">
+										<li class="pb-1 mb-2">
+											<span class="block text-sm opacity-80 mb-1 contentBoxText-style text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Main office</span>
+											<a class="text-base font-bold p-0 no-underline hover:text-accent contentBoxText-style text-gray-900 dark:text-gray-100" href="mailto:{{ generalEntry.email }}">{{ generalEntry.email }}</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+
+					<!-- Schedule -->
+					{% if block.showTiming %}
+						{% if generalEntry.timing|length %}
+							<div>
+								<div class="flex flex-col tw-card h-full {{ iscontactBoxBorderRadius ? 'rounded-2xl md:rounded-3xl' : 'rounded-none' }}">
+									<div class="flex-1 p-6">
+										<h4 class="text-xl font-bold mb-4 contentBoxTitle-style text-gray-900 dark:text-white flex items-center gap-2">
+											<i class="ti ti-clock text-accent"></i>
+											Schedule</h4>
+										<table class="office-hours w-full contentBoxText-style text-sm text-gray-600 dark:text-gray-300">
+											<thead>
+												<tr>
+													<th class="text-left pb-2 font-bold uppercase tracking-wider text-xs">Day</th>
+													<th class="text-left pb-2 font-bold uppercase tracking-wider text-xs">Open</th>
+													<th class="text-left pb-2 font-bold uppercase tracking-wider text-xs">Close</th>
+												</tr>
+											</thead>
+											<tbody>
+												{% for row in generalEntry.timing %}
+													<tr>
+														<td class="py-1">{{ row.day }}</td>
+														<td class="py-1">{{ row.startTime|date('g:i A') }}</td>
+														<td class="py-1">{{ row.endTime|date('g:i A') }}</td>
+													</tr>
+												{% endfor %}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						{% endif %}
+					{% endif %}
+				</div>
+
+				<section {% if isformBackground %} data-theme="{{ block.themeDark ? 'dark' : 'light'}}" {% endif %}>
+					<div class="flex flex-col border border-gray-100 dark:border-gray-800 relative shadow-sm bg-white dark:bg-dark {% if isformBackground %} form-style {% endif %} {{ isformBorderRadius ? 'rounded-2xl md:rounded-3xl' : 'rounded-none' }}">
+						<div class="flex-1 relative z-10 py-12 ">
+							<div class="mx-auto" style="max-width: 800px;">
+								<h2 class="text-3xl lg:text-4xl font-bold text-center pb-4">{{ block.formTitle }}</h2>
+								{% include "_forms/contact" %}
+							</div>
+						</div>
+					</div>
+				</section>
+
+			{% endif %}
+			{% if contactPageLayout == 'contactLayout2' %}
+				{# Layout 2: the Contact page's arrangement. The form card on the left, the details card
+				   (_components/contact-details) sticky on the right. The CMS options still apply: show
+				   address/email/phone/timing, form title, form background and colour, rounded form and
+				   boxes, and the box background, title and text colours. #}
+				{% set address = block.showAddress and generalEntry.Description|length ? generalEntry.Description : null %}
+				{% set email = block.showEmail and generalEntry.email|length ? generalEntry.email : null %}
+				{% set phone = block.showPhone and generalEntry.phoneNumber|length ? generalEntry.phoneNumber : null %}
+				{% set timing = block.showTiming and generalEntry.timing|length ? generalEntry.timing : [] %}
+				{% set socialMedia = generalEntry.socialMedia.all() %}
+				{% set hasDetails = address or email or phone or timing|length or socialMedia|length %}
+				<div class="contact-layout-2 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+					<div class="{{ hasDetails ? 'lg:col-span-7' : 'lg:col-span-8 lg:col-start-3' }}">
+						<section {% if isformBackground %}data-theme="{{ block.themeDark ? 'dark' : 'light' }}"{% endif %}>
+							<div class="tw-card p-6 md:p-8 lg:p-10 [&_.tw-form-control]:py-3 [&_.tw-form-select]:py-3 {{ isformBackground ? 'form-style' : '' }} {{ isformBorderRadius ? '' : 'rounded-none' }}">
+								<h2 class="text-2xl font-bold mb-1">{{ block.formTitle ?: 'Send us a message'|t }}</h2>
+								<p class="text-slate-500 dark:text-slate-400 mb-6">{{ 'Fill in the form and we will get back to you.'|t }}</p>
+								{% include "_forms/contact" %}
+							</div>
+						</section>
+					</div>
+					{% if hasDetails %}
+						{% include "_components/contact-details" with { address: address, email: email, phone: phone, timing: timing, socialMedia: socialMedia,
+							boxClass: 'contentBox-style' ~ (iscontactBoxBorderRadius ? '' : ' rounded-none'), titleClass: 'contentBoxTitle-style', textClass: 'contentBoxText-style' } only %}
+					{% endif %}
+				</div>
+			{% endif %}
+		</div>
+	</div>
+{% endif %}

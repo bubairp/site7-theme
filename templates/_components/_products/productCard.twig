@@ -1,0 +1,72 @@
+{% import "_macros/ratings" as ratings %}
+{% import '_macros/images' as images %}
+
+{# Cache globally, busted on any product edit #}
+{% cache globally using key 'product-card-' ~ product.id ~ '-' ~ product.dateUpdated.timestamp %}
+{# Pre-calculate rating info #}
+{% set reviewQuery = craft.entries().section('productReview').relatedTo({ targetElement: product.id, field: 'singleSelect' }).status('live') %}
+{% set reviewCount = reviewQuery.count() %}
+{% set allReviews = reviewQuery.all() %}
+{% set totalRate = 0 %}{% set ratedCount = 0 %}
+{% for r in allReviews %}
+	{% set totalRate = totalRate + (r.rate ?? 0) %}{% set ratedCount = ratedCount + ((r.rate ?? 0) > 0 ? 1 : 0) %}
+{% endfor %}
+{% set avgRating = ratedCount > 0 ? (totalRate / ratedCount)|number_format(1) : '0.0' %}
+
+{# B1: Use tw-card — removes duplicated card styles and aligns with design system #}
+<div class="product-card group relative text-left">
+	{# Product Image #}
+	{% set category = product.productCategory ? product.productCategory.one() : null %}
+	{% if product.image ? product.image|length : false %}
+		{# B1/CARD-01: aspect-[400/268] replaces inline style="aspect-ratio:..." #}
+		<div class="product-card-media">
+			{% if category %}
+				{# RADIUS-03: tw-badge-category shared class #}
+				<span class="product-card-tag">{{ category.title }}</span>
+			{% endif %}
+			<a href="{{ product.url }}" class="block w-full h-full" tabindex="-1" aria-hidden="true">
+				{{ images.singleImg(product.image.one(), 600, {'ratio': 1}, 'w-full h-full object-cover', { alt: product.title }) }}
+			</a>
+		</div>
+	{% else %}
+		<div class="product-card-media">
+			{% if category %}
+				<span class="product-card-tag">{{ category.title }}</span>
+			{% endif %}
+		</div>
+	{% endif %}
+
+	<div class="product-card-body">
+		{# Title — A11Y-01: full title for screen readers via aria-label #}
+		<h3 class="product-card-title">
+			<a href="{{ product.url }}" class="after:absolute after:inset-0" aria-label="{{ product.title }} — View Details">{{ product.title }}</a>
+		</h3>
+
+		{# Author / Description preview #}
+		{% set author = (product.selectAuthor ?? null) ? product.selectAuthor.one() : null %}
+		{% if author %}
+			<p class="product-card-text">{{ author.title }}</p>
+		{% elseif product.productDiscription ?? null %}
+			{# TW-03: line-clamp-1 replaces truncate for single-line overflow #}
+			<p class="product-card-text">{{ product.productDiscription|striptags }}</p>
+		{% endif %}
+
+		{# Footer Row — CARD-04: unified border-gray-100 dark:border-gray-800 #}
+		{# Price, sale price and discount: see _macros/price.twig #}
+		{% import '_macros/price' as prices %}
+		{% set price = prices.render(product, 'product-card-price', false) %}
+
+		<div class="product-card-foot">
+			{% if price|trim|length %}{{ price }}{% endif %}
+			{% if ratedCount > 0 %}
+				<span class="product-card-rating">
+					<span class="text-warning flex items-center">{{ ratings.star('12px') }}</span>
+					<span class="font-semibold text-xs">{{ avgRating }}</span>
+					<span class="text-xs">({{ reviewCount }})</span>
+				</span>
+			{% endif %}
+			<span class="product-card-link" aria-hidden="true">{{ 'View'|t }}<i class="ti ti-arrow-right"></i></span>
+		</div>
+	</div>
+</div>
+{% endcache %}

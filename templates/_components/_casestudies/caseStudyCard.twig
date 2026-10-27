@@ -1,0 +1,36 @@
+{% import '_macros/images' as images %}
+{# Case study card: 4:3 image, industry eyebrow, serif title, summary, skill pills.
+   variant: 'card' (grid/masonry/slider) or 'row' (list view: image beside the text). #}
+{% set casestudy = casestudy ?? caseStudy ?? null %}
+{% set variant = variant ?? 'card' %}
+{% set tags = casestudy.tags is defined ? casestudy.tags.all() : [] %}
+
+{# Rows and masonry items size to their content; grid and slider cards fill the row height #}
+<article class="masonry-grid-item {{ itemClass ?? '' }} {{ variant == 'row' or (masonry ?? false) ? '' : 'h-full' }}">
+	<div class="work-card work-card--{{ variant }} group relative">
+		{% if casestudy.image|length %}
+			<a href="{{ casestudy.url }}" class="work-card-media" tabindex="-1" aria-hidden="true">
+				{{ images.singleImg(casestudy.image.0, variant == 'row' ? 560 : 640, {'ratio': variant == 'row' ? 1.6 : 1.333}, 'w-full h-full object-cover', { alt: casestudy.title }) }}
+			</a>
+		{% endif %}
+		<div class="work-card-body">
+			{% if casestudy.industry ?? false %}
+				<span class="work-card-eyebrow">{{ casestudy.industry }}</span>
+			{% endif %}
+			<h3 class="work-card-title">
+				<a href="{{ casestudy.url }}" class="after:absolute after:inset-0">{{ casestudy.title }}</a>
+			</h3>
+			{% if casestudy.shortDescription|length %}
+				<p class="work-card-text">{{ casestudy.shortDescription|striptags }}</p>
+			{% endif %}
+			{% if variant == 'row' %}<div class="work-card-foot">{% endif %}
+			{% if tags|length %}
+				<ul class="work-card-tags" aria-label="{{ 'Skills'|t }}">
+					{% for tag in tags %}<li>{{ tag.title }}</li>{% endfor %}
+				</ul>
+			{% endif %}
+			<span class="work-card-link" aria-hidden="true">{{ 'Read the case study'|t }}<i class="ti ti-arrow-right"></i></span>
+			{% if variant == 'row' %}</div>{% endif %}
+		</div>
+	</div>
+</article>

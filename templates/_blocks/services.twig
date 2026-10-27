@@ -1,0 +1,103 @@
+{% import "_macros/images" as images %}
+{% import "_macros/utils" as utils %}
+{% from '_macros/block-style' import bsClasses, bsStyle, bsResponsive, bsContainer %}
+{% set headingAndContent = block.headingAndContent.one() %}
+{% set customItems = block.customItems.all() ?? [] %}
+{% set selectServices = block.selectServices.all() ?? [] %}
+{% set blockStyle = block.blockStyle ?? [] %}
+{% set blockType = block.type.handle ?? '' %}
+{% set blockTypeUid = block.uid ?? '' %}
+{% set serviceStyles = block.serviceStyle.one() %}
+
+{% if selectServices|length or customItems|length %}
+	{% set scopedSel = '.' ~ blockType ~ blockTypeUid ~ '-style' %}
+	{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
+	{% set themeSwitche = null %}
+	{% set blockStyleData = blockStyle|length ? blockStyle.one() : null %}
+	{% if blockStyleData and blockStyleData.background is defined %}
+		{% set themeSwitche = blockStyleData.background.one().themeDark ?? null %}
+	{% endif %}
+
+	{% set itemThemeSwitche = serviceStyles.themeDark ?? null %}
+	{% set serviceBackgroundColorClass = serviceStyles ? (serviceStyles.serviceBackground.one().colorcode ?? '')|roleColor : '' %}
+	{% set titleColorClass = serviceStyles ? (serviceStyles.titleColor.one().colorcode ?? '')|roleColor : '' %}
+	{% set textColorClass = serviceStyles ? (serviceStyles.contentColor.one().colorcode ?? '')|roleColor : '' %}
+
+	{% if serviceBackgroundColorClass or titleColorClass or textColorClass %}
+		{% css %}
+			{% if serviceBackgroundColorClass %}{{ scopedSel }} .service-card { background: {{ serviceBackgroundColorClass|raw }}; }{% endif %}
+			{% if titleColorClass %}{{ scopedSel }} .service-card-title { color: {{ titleColorClass|raw }} !important; }{% endif %}
+			{% if textColorClass %}{{ scopedSel }} .service-card-text { color: {{ textColorClass|raw }} !important; }{% endif %}
+		{% endcss %}
+	{% endif %}
+
+	{% set alignClassMap = { 'start': 'text-left', 'center': 'text-center', 'end': 'text-right' } %}
+	{% set textAlignVal = (serviceStyles and serviceStyles.textAlign is defined and serviceStyles.textAlign) ? (serviceStyles.textAlign.value ?? serviceStyles.textAlign) : 'start' %}
+	{% set cardAlignClass = alignClassMap[textAlignVal] ?? 'text-left' %}
+
+	{# itemsPerRow is the field on this block; servicePerRow is the older handle
+	   some sites still carry. "default" means three. #}
+	{% set perRowRaw = (block.itemsPerRow.value ?? null) ?: (block.servicePerRow.value ?? null) ?: '3' %}
+	{% set perRow = perRowRaw|replace({'column': ''}) %}
+	{% set perRow = perRow in ['1', '2', '3', '4'] ? perRow : '3' %}
+	{% set gridColsMap = { '1': 'md:grid-cols-1 max-w-3xl mx-auto', '2': 'md:grid-cols-2', '3': 'md:grid-cols-2 lg:grid-cols-3', '4': 'md:grid-cols-2 lg:grid-cols-4' } %}
+
+	{# default and masonry render as the grid; list and slider have their own layout #}
+	{% set displayView = block.displayView.value ?? 'gridView' %}
+	{% set displayView = displayView in ['sliderView', 'listView'] ? displayView : 'gridView' %}
+
+	{% set cards = [] %}
+	{% for service in selectServices %}
+		{% set cards = cards|merge([{ kind: 'service', item: service }]) %}
+	{% endfor %}
+	{% for item in customItems %}
+		{% set cards = cards|merge([{ kind: 'custom', item: item }]) %}
+	{% endfor %}
+
+	{{ bsResponsive(blockStyle, scopedSel) }}
+	<section class="block-section services-block services-{{ displayView }} {{ blockType }}{{ blockTypeUid }}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
+		<div class="{{ containerWidth }}">
+			{% if headingAndContent %}
+				{% include "_components/header-content-block" %}
+			{% endif %}
+
+			{% if displayView == 'sliderView' %}
+				<div class="swiper" data-swiper-options='{{ utils.swiperConfig(perRow, 24) }}'>
+					<div class="swiper-wrapper pb-4" data-theme="{{ itemThemeSwitche ? 'dark' : 'light' }}">
+						{% for card in cards %}
+							<div class="swiper-slide h-auto">
+								{% include card.kind == 'service' ? "_components/_services/serviceItem" : "_components/_services/customServiceItem" with { item: card.item, cardAlignClass: cardAlignClass, index: loop.index } %}
+							</div>
+						{% endfor %}
+					</div>
+					<div class="swiper-pagination relative bottom-0 mt-2 pt-4"></div>
+				</div>
+
+			{% elseif displayView == 'listView' %}
+				<ol class="service-list list-none m-0 p-0" data-theme="{{ itemThemeSwitche ? 'dark' : 'light' }}">
+					{% for card in cards %}
+						{% set item = card.item %}
+						{% set isService = card.kind == 'service' %}
+						{% set link = isService ? null : (item.linkUrl ?? null) %}
+						{% set href = isService ? item.url : (link ? link.url ~ (link.urlSuffix ?? '') : null) %}
+						<li class="service-list-item">
+							<{{ href ? 'a' : 'div' }} {% if href %}href="{{ href }}"{% if link and link.target %} target="{{ link.target }}"{% endif %}{% endif %} class="service-list-row group no-underline">
+								<span class="service-list-index">{{ '%02d'|format(loop.index) }}</span>
+								<span class="service-list-title service-card-title">{{ isService ? item.title : item.plainText }}</span>
+								<span class="service-list-text service-card-text">{{ (isService ? item.shortDescription : item.Description)|striptags|raw }}</span>
+								{% if href %}<i class="ti ti-arrow-up-right service-list-arrow" aria-hidden="true"></i>{% endif %}
+							</{{ href ? 'a' : 'div' }}>
+						</li>
+					{% endfor %}
+				</ol>
+
+			{% else %}
+				<div class="grid grid-cols-1 gap-6 lg:gap-8 {{ gridColsMap[perRow] }}" data-theme="{{ itemThemeSwitche ? 'dark' : 'light' }}">
+					{% for card in cards %}
+						{% include card.kind == 'service' ? "_components/_services/serviceItem" : "_components/_services/customServiceItem" with { item: card.item, cardAlignClass: cardAlignClass, index: loop.index } %}
+					{% endfor %}
+				</div>
+			{% endif %}
+		</div>
+	</section>
+{% endif %}
