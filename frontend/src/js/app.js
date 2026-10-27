@@ -258,6 +258,7 @@ const initApp = () => {
     if (document.querySelector('.swiper')) import('./components/carousel.js').then(m => m.initCarousel());
     if (document.querySelector('.gallery:not(body)')) import('./components/gallery.js').then(m => m.initGallery());
     if (document.querySelector('.masonry-grid')) import('./components/masonry-grid.js').then(m => m.initMasonryGrid());
+    if (document.querySelector('[data-ba-slider]')) import('./components/before-after-slider.js').then(m => m.initBeforeAfterSlider());
 };
 
 export default initApp;

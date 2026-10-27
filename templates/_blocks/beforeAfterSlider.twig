@@ -1,0 +1,92 @@
+{#- Before/After Slider (beforeAfterSlider): one or more image comparisons. Each item
+	stacks the before image over the after image and clips it at the divider; a native
+	range input on top drives the divider, so mouse, touch, keyboard and screen readers
+	all work, and frontend/src/js/components/before-after-slider.js only moves the clip
+	(--ba-position). Items without both images are left out. Fields: DESIGN.md "Blocks",
+	.claude/skills/craft-content-entry/reference/blocks.md. -#}
+{% import "_macros/images" as images %}
+{% from '_macros/block-style' import bsClasses, bsStyle, bsResponsive, bsContainer %}
+
+{% set headingAndContent = block.headingAndContent.one() %}
+{% set items = (block.comparisonItems.all() ?? [])|filter(item => item.beforeImage.one() and item.afterImage.one()) %}
+{% set blockStyle = block.blockStyle ?? [] %}
+{% set blockType = block.type.handle ?? '' %}
+{% set blockTypeUid = block.uid ?? '' %}
+
+{% if items|length %}
+	{% set scopedSel = '.' ~ blockType ~ blockTypeUid ~ '-style' %}
+	{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
+	{% set themeSwitche = null %}
+	{% set blockStyleData = blockStyle|length ? blockStyle.one() : null %}
+	{% if blockStyleData and blockStyleData.background is defined %}
+		{% set themeSwitche = blockStyleData.background.one().themeDark ?? null %}
+	{% endif %}
+
+	{% set perRow = block.itemsPerRow.value ?? 'default' %}
+	{% set gridCols = {
+		'2': 'md:grid-cols-2',
+		'3': 'md:grid-cols-2 lg:grid-cols-3',
+		'4': 'sm:grid-cols-2 lg:grid-cols-4'
+	}[perRow] ?? '' %}
+	{% set imageWidth = {'2': 960, '3': 720, '4': 640}[perRow] ?? 1600 %}
+	{% set shape = block.aspectRatio.value ?? 'default' %}
+	{% set shapeRatio = {'square': 1, 'fourThree': 4 / 3, 'sixteenNine': 16 / 9}[shape] ?? null %}
+
+	{{ bsResponsive(blockStyle, scopedSel) }}
+	<section class="block-section before-after-section {{ blockType }}{{ blockTypeUid }}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
+		<div class="{{ containerWidth }}">
+			{% if headingAndContent %}
+				{% include "_components/header-content-block" %}
+			{% endif %}
+
+			<div class="grid grid-cols-1 gap-8 lg:gap-10 {{ gridCols }}">
+				{% for item in items %}
+					{% set before = item.beforeImage.one() %}
+					{% set after = item.afterImage.one() %}
+					{# Both images share one shape (the chosen one, else the before image's), so they line up #}
+					{% set ratio = shapeRatio ?? ((before.width and before.height) ? before.width / before.height : 16 / 9) %}
+					{% set position = item.startPosition is null ? 50 : min(100, max(0, item.startPosition)) %}
+					{% set beforeLabel = (item.beforeLabel ?? '')|trim ?: 'Before'|t %}
+					{% set afterLabel = (item.afterLabel ?? '')|trim ?: 'After'|t %}
+					{% set heading = (item.itemHeading ?? '')|trim %}
+					{% set description = item.Description ?? null %}
+					{% set hasDescription = description and (description|striptags|trim)|length %}
+					{# Styled with Tailwind only; colours, corners and shadow are the design's role
+						tokens, so Harbor restyles it without a template of its own. The ba-* classes
+						are hooks for the script and tests, not styles. #}
+					{% set imageLayer = 'absolute inset-0 [&>picture]:block [&>picture]:h-full' %}
+					{% set imageClasses = 'ba-slider__picture block size-full max-w-none object-cover' %}
+					{% set label = 'ba-slider__label pointer-events-none absolute top-4 z-[2] max-w-[calc(50%_-_2.5rem)] truncate rounded-full bg-black/55 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-on-dark' %}
+					<figure class="ba-item m-0">
+						<div class="ba-slider group relative isolate select-none overflow-hidden rounded-[var(--radius-card)] bg-surface-alt" data-ba-slider style="--ba-position: {{ position }}%; aspect-ratio: {{ ratio }};">
+							<div class="ba-slider__img--after {{ imageLayer }}">
+								{{ images.singleImg(after, imageWidth, {'ratio': ratio}, imageClasses) }}
+							</div>
+							<div class="ba-slider__img--before z-[1] [clip-path:inset(0_calc(100%_-_var(--ba-position,50%))_0_0)] {{ imageLayer }}">
+								{{ images.singleImg(before, imageWidth, {'ratio': ratio}, imageClasses) }}
+							</div>
+							{# The whole frame is the input: press or drag anywhere, Tab to focus. A 1px thumb,
+								because the browser maps the pointer over the track minus the thumb's width. #}
+							<input class="ba-slider__range peer absolute inset-0 z-[3] m-0 size-full cursor-ew-resize touch-pan-y appearance-none bg-transparent opacity-0 [&::-moz-range-thumb]:h-[100vh] [&::-moz-range-thumb]:w-px [&::-moz-range-thumb]:border-0 [&::-webkit-slider-thumb]:h-[100vh] [&::-webkit-slider-thumb]:w-px [&::-webkit-slider-thumb]:appearance-none"
+								type="range" min="0" max="100" step="1" value="{{ position }}"
+								aria-label="{{ heading ?: 'Before and after comparison'|t }}"
+								aria-valuetext="{{ beforeLabel }} {{ position }}%, {{ afterLabel }} {{ 100 - position }}%"
+								data-before-label="{{ beforeLabel }}" data-after-label="{{ afterLabel }}">
+							<span class="ba-slider__handle pointer-events-none absolute inset-y-0 left-[var(--ba-position,50%)] z-[2] w-0.5 -translate-x-1/2 bg-on-dark shadow-[0_0_0_1px_rgb(0_0_0/0.12)] peer-focus-visible:[&>span]:outline-3 peer-focus-visible:[&>span]:outline-offset-3 peer-focus-visible:[&>span]:outline-accent peer-focus-visible:[&>span]:outline-solid" aria-hidden="true">
+								<span class="ba-slider__knob absolute top-1/2 left-1/2 grid size-11 -translate-1/2 place-items-center rounded-full bg-on-dark text-xl text-strong shadow-[var(--shadow-float)] transition-transform duration-150 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"><i class="ti ti-arrows-horizontal"></i></span>
+							</span>
+							<span class="ba-slider__label--before left-4 {{ label }}" aria-hidden="true">{{ beforeLabel }}</span>
+							<span class="ba-slider__label--after right-4 {{ label }}" aria-hidden="true">{{ afterLabel }}</span>
+						</div>
+						{% if heading or hasDescription %}
+							<figcaption class="mt-4">
+								{% if heading %}<h3 class="m-0 text-xl leading-snug text-strong">{{ heading }}</h3>{% endif %}
+								{% if hasDescription %}<div class="rich-text mt-2 text-muted">{{ description }}</div>{% endif %}
+							</figcaption>
+						{% endif %}
+					</figure>
+				{% endfor %}
+			</div>
+		</div>
+	</section>
+{% endif %}
