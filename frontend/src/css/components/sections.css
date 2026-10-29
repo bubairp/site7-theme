@@ -858,6 +858,48 @@
     }
   }
 
+  /* Block width "Full width" (.split-full, no container): the media meets the screen edge on
+     its side, the text's outer edge lines up with the page container's content edge
+     (container.css: 1360px at most, the block's px-4 gutter), measured from the block's own
+     width (cqw) so a design's column split doesn't matter. Rounded media keep only the corners
+     away from the screen edge; stacked on a phone the media runs edge to edge. */
+  .split-full {
+    --split-container: 1360px;
+    container-type: inline-size;
+    width: 100%;
+  }
+
+  .split-full .split-copy {
+    padding-inline: 1rem;
+  }
+
+  /* .split-section first: a design's own rounding rules must not win at the screen edge;
+     a design sets the inner corners' size with --split-radius */
+  .split-section .split-full .split-media .split-frame.is-rounded,
+  .split-section .split-full .split-media .split-frame.is-rounded :is(.split-image, picture) {
+    border-radius: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .split-full .split-grid > .split-copy {
+      padding-inline: 0 max(1rem, calc((100cqw - var(--split-container)) / 2 + 1rem));
+    }
+
+    .split-full .split-grid.is-reversed > .split-copy {
+      padding-inline: max(1rem, calc((100cqw - var(--split-container)) / 2 + 1rem)) 0;
+    }
+
+    .split-section .split-full .split-grid:not(.is-reversed) .split-media .split-frame.is-rounded {
+      border-start-end-radius: var(--split-radius, var(--radius-card));
+      border-end-end-radius: var(--split-radius, var(--radius-card));
+    }
+
+    .split-section .split-full .split-grid.is-reversed .split-media .split-frame.is-rounded {
+      border-start-start-radius: var(--split-radius, var(--radius-card));
+      border-end-start-radius: var(--split-radius, var(--radius-card));
+    }
+  }
+
   /* The media's box: its shape (--split-ratio from the block's "Image/video shape", default
      4 / 3.4) and corners; the image, video or embedded player fills it */
   .split-frame {

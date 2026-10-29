@@ -30,6 +30,9 @@
 	{% endif %}
 
 	{% set isColumnReverse = block.sideSwitch ?? false %}
+	{# Block width "Full width": the media runs to the screen edge on its side, the heading and
+	   the text stay lined up with the page container (sections.css "split-full") #}
+	{% set isFullWidth = ((blockStyleData ?? null) and (blockStyleData.containerWidth.value ?? null) == 'fullWidth') %}
 
 	{# Media: "Image or video" (imageVideo: an image, a video file or an embedded video). A
 	   block saved before it had imageContent (the image-only Image field): while that field
@@ -53,10 +56,12 @@
 
 	{{ bsResponsive(blockStyle, scopedSel) }}
 	<section class="block-section split-section {{ blockType }}{{blockTypeUid}}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
-		<div class="{{ containerWidth }}">
+		<div class="{{ isFullWidth ? 'split-full' : containerWidth }}">
 			{% if headingAndContent %}
 				{% if headingAndContent.heading|length or headingAndContent.Description|length %}
+					{% if isFullWidth %}<div class="container mx-auto px-4">{% endif %}
 					{% include "_components/header-content-block" %}
+					{% if isFullWidth %}</div>{% endif %}
 				{% endif %}
 			{% endif %}
 
