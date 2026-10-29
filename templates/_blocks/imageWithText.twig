@@ -19,7 +19,7 @@
 {% set themeSwitche = null %}
 {% set isImageBorderRadius = block.imageBorderRounded ?? false %}
 
-{% if block.imageContent %}
+{% if block %}
 	{% set containerWidth = bsContainer(blockStyle, 'container mx-auto px-4') %}
 	{% if blockStyle is defined and blockStyle|length %}
 		{% set blockStyleData = blockStyle.one() %}
@@ -30,6 +30,26 @@
 	{% endif %}
 
 	{% set isColumnReverse = block.sideSwitch ?? false %}
+
+	{# Media: "Image or video" (imageVideo: an image, a video file or an embedded video). A
+	   block saved before it had imageContent (the image-only Image field): while that field
+	   is still in the layout it's read by name; once the block package removes it, its image
+	   is still related to the block through the Image field, so it's found there. A site whose
+	   block predates imageVideo/aspectRatio/button renders too: each is read only when its
+	   field is in the layout (asked of the layout: "is defined" can't tell, an entry answers
+	   any name). #}
+	{% set layout = block.getFieldLayout() %}
+	{% set media = layout.getFieldByHandle('imageVideo') ? block.imageVideo.one() : null %}
+	{% if not media %}
+		{% set media = layout.getFieldByHandle('imageContent')
+			? block.imageContent.one()
+			: craft.assets().relatedTo({ sourceElement: block, field: 'image' }).one() %}
+	{% endif %}
+	{% set mediaKind = not media ? null : (media.kind == 'json' ? 'embed' : (media.kind == 'video' ? 'video' : 'image')) %}
+	{# Shape: Default is the block's own (4 / 3.4; an embedded video 16:9) #}
+	{% set shape = layout.getFieldByHandle('aspectRatio') ? (block.aspectRatio.value ?? 'default') : 'default' %}
+	{% set shapeRatio = {'square': '1 / 1', 'fourThree': '4 / 3', 'sixteenNine': '16 / 9'}[shape] ?? (mediaKind == 'embed' ? '16 / 9' : null) %}
+	{% set imageRatio = {'square': 1, 'fourThree': 4 / 3, 'sixteenNine': 16 / 9}[shape] ?? null %}
 
 	{{ bsResponsive(blockStyle, scopedSel) }}
 	<section class="block-section split-section {{ blockType }}{{blockTypeUid}}-style {{ bsClasses(blockStyle) }}" data-theme="{{ themeSwitche ? 'dark' : 'light' }}" style="{{ bsStyle(blockStyle) }}">
@@ -42,8 +62,22 @@
 
 			<div class="split-grid {{ isColumnReverse ? 'is-reversed' : '' }}">
 				<div class="split-media {{ isColumnReverse ? 'lg:order-2' : '' }}">
-					{% if block.imageContent|length %}
-						{{ images.singleImg(block.imageContent.one(), 800, {}, 'split-image w-full ' ~ (isImageBorderRadius ? 'is-rounded' : 'is-square'), {}) }}
+					{% if media %}
+						<div class="split-frame is-{{ mediaKind }} {{ isImageBorderRadius ? 'is-rounded' : 'is-square' }}" {% if shapeRatio %}style="--split-ratio: {{ shapeRatio }};"{% endif %}>
+							{% if mediaKind == 'image' %}
+								{{ images.singleImg(media, 1000, imageRatio ? {'ratio': imageRatio} : {}, 'split-image w-full ' ~ (isImageBorderRadius ? 'is-rounded' : 'is-square'), {}) }}
+							{% elseif mediaKind == 'video' %}
+								{# A video file plays like the banners: muted, looped, inline, no controls #}
+								<video class="split-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+									<source src="{{ media.url }}" type="{{ media.mimeType }}">
+								</video>
+							{% else %}
+								{% set embedded = craft.embeddedAssets.get(media) %}
+								{% if embedded %}
+									{{ embedded.getIframeCode(['autoplay=0', 'loop=0', 'background=0', 'class=split-embed'])|raw }}
+								{% endif %}
+							{% endif %}
+						</div>
 					{% endif %}
 				</div>
 
@@ -55,7 +89,7 @@
 
 						<div class="block-description split-text tw-rich-text w-full">{{ block.textContent }}</div>
 
-						{% set imageTextBtn = block.button is defined ? block.button : null %}
+						{% set imageTextBtn = layout.getFieldByHandle('button') ? block.button : null %}
 						{% if imageTextBtn|length %}
 							<div class="flex flex-wrap items-center gap-4 pt-2 lg:pt-4">{{ buttons.renderButton(imageTextBtn) }}</div>
 						{% endif %}

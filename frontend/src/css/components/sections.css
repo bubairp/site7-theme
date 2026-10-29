@@ -858,6 +858,34 @@
     }
   }
 
+  /* The media's box: its shape (--split-ratio from the block's "Image/video shape", default
+     4 / 3.4) and corners; the image, video or embedded player fills it */
+  .split-frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: var(--split-ratio, 4 / 3.4);
+  }
+
+  .split-frame.is-rounded {
+    border-radius: var(--radius-card);
+  }
+
+  .split-frame :is(picture, .split-image, .split-video, .split-embed, iframe) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .split-frame :is(.split-image, .split-video) {
+    object-fit: cover;
+  }
+
+  .split-frame iframe {
+    position: absolute;
+    inset: 0;
+    border: 0;
+  }
+
   .split-image {
     display: block;
     width: 100%;
