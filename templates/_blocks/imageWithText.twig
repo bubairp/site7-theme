@@ -49,9 +49,11 @@
 			: craft.assets().relatedTo({ sourceElement: block, field: 'image' }).one() %}
 	{% endif %}
 	{% set mediaKind = not media ? null : (media.kind == 'json' ? 'embed' : (media.kind == 'video' ? 'video' : 'image')) %}
-	{# Shape: Default is the block's own (4 / 3.4; an embedded video 16:9) #}
+	{# Shape: Default keeps an image's own proportions (as uploaded, nothing cropped); an
+	   embedded video is 16:9 and a video file the block's 4 / 3.4 #}
 	{% set shape = layout.getFieldByHandle('aspectRatio') ? (block.aspectRatio.value ?? 'default') : 'default' %}
-	{% set shapeRatio = {'square': '1 / 1', 'fourThree': '4 / 3', 'sixteenNine': '16 / 9'}[shape] ?? (mediaKind == 'embed' ? '16 / 9' : null) %}
+	{% set ownRatio = mediaKind == 'image' and media.width and media.height ? media.width ~ ' / ' ~ media.height : null %}
+	{% set shapeRatio = {'square': '1 / 1', 'fourThree': '4 / 3', 'sixteenNine': '16 / 9'}[shape] ?? (mediaKind == 'embed' ? '16 / 9' : ownRatio) %}
 	{% set imageRatio = {'square': 1, 'fourThree': 4 / 3, 'sixteenNine': 16 / 9}[shape] ?? null %}
 
 	{{ bsResponsive(blockStyle, scopedSel) }}
@@ -89,7 +91,8 @@
 				<div class="split-copy {{ isColumnReverse ? 'lg:order-1' : '' }}">
 					<div class="flex flex-col justify-center {{ align == 'center' ? 'items-center text-center' : (align == 'right' ? 'items-end text-right' : 'items-start text-left') }}">
 						{% if block.title %}
-							<{{titleTags}} class="block-heading-title split-title w-full">{{ block.title|e|replace({'{': '<em>', '}': '</em>'})|raw }}</{{titleTags}}>
+							{# {word} is the accent; older sites wrote it as <span class="text-primary">word</span> #}
+							<{{titleTags}} class="block-heading-title split-title w-full">{{ block.title|replace({'<span class="text-primary">': '{', '</span>': '}'})|e|replace({'{': '<em>', '}': '</em>'})|raw }}</{{titleTags}}>
 						{% endif %}
 
 						<div class="block-description split-text tw-rich-text w-full">{{ block.textContent }}</div>

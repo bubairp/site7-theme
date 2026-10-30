@@ -164,7 +164,7 @@
 							<span class="section-eyebrow smallText-badge">{{ ctaBannerItemSubHeading }}</span>
 						</div>
 					{% endif %}
-					<{{headingTags}} class="block-heading-title cta-title">{{ ctaBannerItemHeading|e|replace({'{': '<em>', '}': '</em>'})|raw }}</{{headingTags}}>
+					<{{headingTags}} class="block-heading-title cta-title">{{ ctaBannerItemHeading|replace({'<span class="text-primary">': '{', '</span>': '}'})|e|replace({'{': '<em>', '}': '</em>'})|raw }}</{{headingTags}}>
 					<div class="block-description cta-text tw-rich-text">{{ ctaBannerItemDescription }}</div>
 					<div class="flex flex-wrap {{ justifyClass }} gap-3">{{ buttons.renderButton(ctaBannerItemButton) }}</div>
 				</div>

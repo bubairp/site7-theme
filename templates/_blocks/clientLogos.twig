@@ -23,8 +23,11 @@
 	{% import "_macros/utils" as utils %}
 	{% set link = item.linkUrl ?? null %}
 	{% set image = item.image.one() ?? null %}
+	{# The logo's own proportions size it: a wide wordmark gets shorter, a square mark
+	   taller, so every logo carries about the same weight (sections.css .logo-mark) #}
+	{% set logoRatio = image and image.width and image.height ? (image.width / image.height)|round(3) : null %}
 	<{{ link ? 'a' : 'div' }} {% if link %}href="{{ link.url ?? link }}" {{ utils.newTabAttrs(link.url ?? link, 'noopener') }}{% endif %} class="logo-item group">
-		<span class="logo-mark">
+		<span class="logo-mark" {% if logoRatio %}style="--logo-ratio: {{ logoRatio }};"{% endif %}>
 			{% if image %}
 				{% if image.extension == 'svg' %}
 					{{ images.singleImg(image, 160, {}, 'logo-img', { alt: item.title ?: 'Client logo' }) }}

@@ -38,6 +38,7 @@
   :is(h1, .h1, h2, .h2, h3, .h3, .block-heading-title) :is(em, i) {
     font-style: var(--heading-em-style);
     font-weight: var(--heading-em-weight);
+    color: var(--heading-em-color, inherit);
   }
 
   /* Scale (DESIGN.md §3), stepping down on smaller screens */

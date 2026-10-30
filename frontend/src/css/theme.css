@@ -38,6 +38,7 @@
   --heading-tracking: normal;
   --heading-em-style: italic; /* <em> inside h1–h3 */
   --heading-em-weight: 300;
+  --heading-em-color: inherit; /* a design can colour the accent, e.g. var(--accent) */
   --quote-weight: var(--heading-weight); /* testimonial quotes, large statements */
   --quote-style: italic;                 /* pull quotes */
   --pullquote-weight: 300;               /* pull quotes in rich text */

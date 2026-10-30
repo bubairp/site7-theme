@@ -2141,14 +2141,30 @@
     width: 100%;
   }
 
-  /* SVG logos often carry no intrinsic size, so give them an explicit box */
+  /* Every logo gets about the same area whatever its shape: the height is
+     sqrt(area / ratio), kept between the min and max height and the max width.
+     --logo-ratio comes from the image (clientLogos.twig); an SVG without a size
+     counts as 3:1. A design changes the --logo-* values. */
+  .logos-section {
+    --logo-area: 4400;
+    --logo-min-h: 20px;
+    --logo-max-h: 48px;
+    --logo-max-w: 160px;
+  }
+
   .logo-mark :is(picture, img) {
     display: block;
-    width: 100%;
-    max-width: 150px;
-    height: 44px;
+    width: auto;
+    max-width: min(100%, var(--logo-max-w));
+    height: clamp(var(--logo-min-h), sqrt(var(--logo-area) / var(--logo-ratio, 3)) * 1px, var(--logo-max-h));
     margin-inline: auto;
     object-fit: contain;
+  }
+
+  .logo-mark picture img {
+    width: auto;
+    max-width: 100%;
+    height: 100%;
   }
 
   .logo-wordmark {

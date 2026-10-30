@@ -45,6 +45,12 @@
     box-shadow: var(--shadow-header) !important;
   }
 
+  /* A page without a hero or page banner: a hairline under the bar sets it off the
+     content (scrolled, the shadow above takes over) */
+  #header:not(.has-header-banner) .headerMain:not(.scrolled, .menu-open, .menu-dropdown-open) {
+    border-bottom: 1px solid var(--line);
+  }
+
   /* Header Shadow on Scroll (Legacy class support) */
   .headerMain.fixed {
     position: fixed !important;
